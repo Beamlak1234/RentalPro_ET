@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RentalPro ET — institutional / civic backgrounds (readable on screen, WCAG-friendly) */
+@layer utilities {
+  .gov-surface-institutional {
+    background-color: rgb(241 245 249);
+    background-image:
+      linear-gradient(
+        to right,
+        rgb(203 213 225 / 0.4) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(203 213 225 / 0.4) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
+  }
+
+  .gov-surface-civic {
+    background-color: rgb(248 250 252);
+    background-image: radial-gradient(
+      rgb(148 163 184 / 0.2) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  .gov-surface-admin {
+    background-color: rgb(241 245 249);
+    background-image:
+      linear-gradient(
+        to right,
+        rgb(203 213 225 / 0.38) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(203 213 225 / 0.38) 1px,
+        transparent 1px
+      );
+    background-size: 26px 26px;
+  }
+
+  .gov-top-accent {
+    height: 4px;
+    width: 100%;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #1e293b 0%, #334155 40%, #1e293b 100%);
+  }
+}
+
+body {
+  margin: 0;
+}
