@@ -10,6 +10,12 @@ const variants = {
     'border-2 border-[#1e293b] bg-white text-[#1e293b] hover:bg-slate-50 focus-visible:outline-[#1e293b]',
   ghost:
     'min-h-12 bg-transparent px-3 text-[#1e293b] hover:bg-slate-100 focus-visible:outline-[#1e293b]',
+  success:
+    'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:outline-emerald-600',
+  danger:
+    'bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600',
+  warning:
+    'bg-amber-600 text-white hover:bg-amber-700 focus-visible:outline-amber-600',
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {

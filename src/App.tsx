@@ -9,6 +9,12 @@ import { AdminSignInPage } from './pages/admin/AdminSignInPage'
 import { PublicRoleAuthPage } from './pages/auth/PublicRoleAuthPage'
 import { ContactPage } from './pages/contact/ContactPage'
 import { ActorDashboardPage } from './pages/dashboards/ActorDashboardPage'
+import { OfficerParticipantDetailPage } from './pages/officer/OfficerParticipantDetailPage'
+import { OfficerParticipantsDirectoryPage } from './pages/officer/OfficerParticipantsDirectoryPage'
+import { ParticipantProfilePage } from './pages/profile/ParticipantProfilePage'
+import { TenantContractDetailPage } from './pages/tenant/TenantContractDetailPage'
+import { TenantContractsPage } from './pages/tenant/TenantContractsPage'
+import { TenantDashboardPage } from './pages/tenant/TenantDashboardPage'
 import { GovernmentWelcomePage } from './pages/government/GovernmentWelcomePage'
 import { WelcomePage } from './pages/landing/WelcomePage'
 
@@ -63,7 +69,37 @@ export default function App() {
             element={
               <AppShell>
                 <ProtectedRoute role="tenant">
-                  <ActorDashboardPage role="tenant" />
+                  <TenantDashboardPage />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
+            path="/tenant/contracts"
+            element={
+              <AppShell>
+                <ProtectedRoute role="tenant">
+                  <TenantContractsPage />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
+            path="/tenant/contracts/:contractId"
+            element={
+              <AppShell>
+                <ProtectedRoute role="tenant">
+                  <TenantContractDetailPage />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
+            path="/tenant/profile"
+            element={
+              <AppShell>
+                <ProtectedRoute role="tenant">
+                  <ParticipantProfilePage expectedRole="tenant" />
                 </ProtectedRoute>
               </AppShell>
             }
@@ -79,11 +115,41 @@ export default function App() {
             }
           />
           <Route
+            path="/landlord/profile"
+            element={
+              <AppShell>
+                <ProtectedRoute role="landlord">
+                  <ParticipantProfilePage expectedRole="landlord" />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
             path="/officer/dashboard"
             element={
               <AppShell>
                 <ProtectedRoute role="officer">
                   <ActorDashboardPage role="officer" />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
+            path="/officer/participants"
+            element={
+              <AppShell>
+                <ProtectedRoute role="officer">
+                  <OfficerParticipantsDirectoryPage />
+                </ProtectedRoute>
+              </AppShell>
+            }
+          />
+          <Route
+            path="/officer/participants/:participantId"
+            element={
+              <AppShell>
+                <ProtectedRoute role="officer">
+                  <OfficerParticipantDetailPage />
                 </ProtectedRoute>
               </AppShell>
             }

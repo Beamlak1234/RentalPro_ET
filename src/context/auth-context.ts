@@ -1,5 +1,9 @@
 import { createContext } from 'react'
 
+import type {
+  ParticipantProfile,
+  ParticipantRegistrationDraft,
+} from '../auth/participantProfile'
 import type { AuthRole, PublicAuthRole } from '../constants/roles'
 
 export type AuthUser = {
@@ -7,6 +11,16 @@ export type AuthUser = {
   email: string
   displayName: string
   role: AuthRole
+}
+
+export type RegisterInput = {
+  email: string
+  password: string
+  passwordConfirm: string
+  displayName: string
+  role: PublicAuthRole
+  participantDraft?: ParticipantRegistrationDraft
+  demoConsentAccepted: boolean
 }
 
 export type AuthContextValue = {
@@ -17,11 +31,10 @@ export type AuthContextValue = {
     expectedRole: AuthRole,
   ) => { ok: true } | { ok: false; error: string }
   register: (
-    email: string,
-    password: string,
-    passwordConfirm: string,
-    displayName: string,
-    role: PublicAuthRole,
+    input: RegisterInput,
+  ) => { ok: true } | { ok: false; error: string }
+  updateParticipantProfile: (
+    patch: Partial<ParticipantProfile>,
   ) => { ok: true } | { ok: false; error: string }
   logout: () => void
 }

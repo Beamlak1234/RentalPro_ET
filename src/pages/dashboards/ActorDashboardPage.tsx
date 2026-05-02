@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import type { PublicAuthRole } from '../../constants/roles'
 import { ROLE_LABELS } from '../../constants/roles'
 
@@ -40,6 +42,19 @@ export function ActorDashboardPage({ role }: Props) {
           Main features for{' '}
           <span className="font-semibold text-slate-800">{title}s</span> go here
           in the next build step.
+          {role === 'officer' ?
+            <span className="mt-8 block border-t border-slate-100 pt-6">
+              <Link
+                to="/officer/participants"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[#1e293b] px-5 font-semibold text-white shadow-sm transition hover:bg-[#334155]"
+              >
+                Open participant directory (tenant & landlord)
+              </Link>
+              <span className="mx-auto mt-3 block max-w-md text-xs text-slate-500">
+                Read-only prototype list from browser-stored signup data.
+              </span>
+            </span>
+          : null}
         </div>
       </section>
     </>

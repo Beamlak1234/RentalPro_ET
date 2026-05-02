@@ -30,6 +30,11 @@ export function dashboardPath(role: AuthRole): string {
   }
 }
 
+/** Tenant / landlord profile editor inside AppShell. */
+export function participantProfilePath(role: 'tenant' | 'landlord'): string {
+  return role === 'tenant' ? '/tenant/profile' : '/landlord/profile'
+}
+
 export function signInPathForRole(role: AuthRole): string {
   if (role === 'admin') return '/admin/sign-in'
   return `/auth/${role}/sign-in`

@@ -2,8 +2,11 @@ import { Landmark, Shield, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { GovPageSurface } from '../../components/layout/GovPageSurface'
+import { useAuth } from '../../hooks/useAuth'
 
 export function GovernmentWelcomePage() {
+  const { user } = useAuth()
+
   return (
     <GovPageSurface variant="institutional" topAccent className="min-h-full">
       <section className="flex-1 px-4 py-12 sm:py-16 lg:py-20">
@@ -55,6 +58,20 @@ export function GovernmentWelcomePage() {
                 </p>
               </div>
             </div>
+
+            {user?.role === 'officer' ?
+              <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50/85 px-4 py-4 text-sm leading-relaxed text-sky-950 ring-1 ring-sky-100 sm:px-5">
+                <strong className="font-semibold">Signed in</strong> as{' '}
+                officer — open the prototype{' '}
+                <Link
+                  className="font-semibold underline decoration-sky-400 underline-offset-2 hover:no-underline"
+                  to="/officer/participants"
+                >
+                  tenant & landlord participant directory
+                </Link>{' '}
+                for read-only browse of demo registrations in this browser.
+              </div>
+            : null}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
