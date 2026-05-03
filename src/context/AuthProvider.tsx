@@ -4,9 +4,14 @@ import {
   applyParticipantProfilePatch,
   createAccount,
   findAccountByCredentials,
+  findAccountByEmail,
   getSessionUserId,
   loadAccounts,
+  participantEntitlementsFromAccount,
+  resolveActiveParticipantRole,
   setSessionUserId,
+  setStoredActiveParticipantRole,
+  upgradeParticipantWithSecondRole,
   type PersistedAccount,
 } from '../auth/storage'
 import type { ParticipantProfile } from '../auth/participantProfile'
@@ -15,8 +20,20 @@ import type { AuthRole } from '../constants/roles'
 import { AuthContext, type AuthUser, type RegisterInput } from './auth-context'
 
 function accountToUser(account: PersistedAccount): AuthUser {
-  const { id, email, displayName, role } = account
-  return { id, email, displayName, role }
+  const { id, email, displayName } = account
+  if (account.role === 'admin' || account.role === 'officer') {
+    return {
+      id,
+      email,
+      displayName,
+      role: account.role,
+      participantEntitlements: null,
+    }
+  }
+
+  const ent = participantEntitlementsFromAccount(account)
+  const role = resolveActiveParticipantRole(account.id, ent)
+  return { id, email, displayName, role, participantEntitlements: ent }
 }
 
 function readUserFromStorage(): AuthUser | null {
@@ -29,6 +46,7 @@ function readUserFromStorage(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readUserFromStorage())
+  const [authShellEpoch, bumpAuthShellEpoch] = useState(0)
 
   const login = useCallback(
     (
@@ -49,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error:
             'Invalid credentials, or this account belongs to another role.',
         }
+      }
+      if (expectedRole === 'tenant' || expectedRole === 'landlord') {
+        setStoredActiveParticipantRole(match.id, expectedRole)
       }
       setSessionUserId(match.id)
       setUser(accountToUser(match))
@@ -76,15 +97,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       input.displayName.trim() ||
       input.participantDraft?.legalFullName?.trim() ||
       'User'
-    const created = createAccount(accounts, {
-      email: input.email,
-      password: input.password,
-      displayName: disp,
-      role: input.role,
-      participantDraft: input.participantDraft,
-      demoConsentAccepted: input.demoConsentAccepted,
-    })
+
+    const mergeCandidate = findAccountByEmail(accounts, input.email)
+    const canMergeParticipant =
+      isParticipant &&
+      mergeCandidate &&
+      (mergeCandidate.role === 'tenant' || mergeCandidate.role === 'landlord')
+
+    if (canMergeParticipant && !input.participantDraft) {
+      return {
+        ok: false as const,
+        error: 'Legal name, phone, and city fields are required to add another workspace.',
+      }
+    }
+
+    const created =
+      canMergeParticipant &&
+      input.participantDraft &&
+      (input.role === 'tenant' || input.role === 'landlord')
+      ? upgradeParticipantWithSecondRole(accounts, {
+          email: input.email,
+          password: input.password,
+          roleToAdd: input.role,
+          participantDraft: input.participantDraft,
+          demoConsentAccepted: input.demoConsentAccepted,
+        })
+      : createAccount(accounts, {
+          email: input.email,
+          password: input.password,
+          displayName: disp,
+          role: input.role,
+          participantDraft: input.participantDraft,
+          demoConsentAccepted: input.demoConsentAccepted,
+        })
     if (!created.ok) return created
+    if (input.role === 'tenant' || input.role === 'landlord') {
+      setStoredActiveParticipantRole(created.account.id, input.role)
+    }
     setSessionUserId(created.account.id)
     setUser(accountToUser(created.account))
     return { ok: true as const }
@@ -98,8 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!current?.id) {
         return { ok: false, error: 'You are signed out.' }
       }
-      if (current.role !== 'tenant' && current.role !== 'landlord') {
-        return { ok: false, error: 'Only tenant and landlord profiles are editable.' }
+      if (!current.participantEntitlements) {
+        return {
+          ok: false,
+          error:
+            'Only tenant and landlord demo profiles support this prototype editor.',
+        }
       }
       const accounts = loadAccounts()
       const next = applyParticipantProfilePatch(accounts, current.id, patch)
@@ -111,9 +164,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
+  const switchParticipantWorkspace = useCallback(
+    (next: 'tenant' | 'landlord'): { ok: true } | { ok: false; error: string } => {
+      const current = user
+      if (!current?.id || !current.participantEntitlements) {
+        return { ok: false, error: 'Switching workspaces is only for tenants and landlords.' }
+      }
+      if (!current.participantEntitlements.tenant || !current.participantEntitlements.landlord) {
+        return {
+          ok: false,
+          error: 'Dual tenant + landlord access is needed before switching workspaces.',
+        }
+      }
+      if (!current.participantEntitlements[next]) {
+        return { ok: false, error: 'This workspace is not available on your account.' }
+      }
+      setStoredActiveParticipantRole(current.id, next)
+      setUser({ ...current, role: next })
+      return { ok: true }
+    },
+    [user],
+  )
+
   const logout = useCallback(() => {
     setSessionUserId(null)
     setUser(null)
+    // Helps auth shells remount input nodes so browser autofill is less sticky after demo sign-out.
+    bumpAuthShellEpoch((n) => n + 1)
   }, [])
 
   const value = useMemo(
@@ -122,9 +199,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       updateParticipantProfile,
+      switchParticipantWorkspace,
       logout,
+      authShellEpoch,
     }),
-    [login, logout, register, updateParticipantProfile, user],
+    [
+      authShellEpoch,
+      login,
+      logout,
+      register,
+      switchParticipantWorkspace,
+      updateParticipantProfile,
+      user,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

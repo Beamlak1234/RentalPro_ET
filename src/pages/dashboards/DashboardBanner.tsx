@@ -8,6 +8,13 @@ export function DashboardBanner({ role }: { role: AuthRole }) {
       ? 'border-b border-slate-200 bg-white'
       : 'border-b border-slate-100 bg-slate-50'
 
+  const dualParticipant =
+    (role === 'tenant' || role === 'landlord') &&
+    Boolean(
+      user?.participantEntitlements?.tenant &&
+        user.participantEntitlements.landlord,
+    )
+
   return (
     <div className={officerVisual}>
       <div className="mx-auto max-w-6xl px-4 py-4 lg:px-6">
@@ -21,6 +28,15 @@ export function DashboardBanner({ role }: { role: AuthRole }) {
               {user?.email}
             </span>
           </p>
+          {dualParticipant ?
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-slate-600 sm:text-sm">
+              Tenant + landlord share this demo login. Routes follow the workspace
+              you pick from the{' '}
+              <strong className="font-semibold text-slate-700">Workspace</strong>{' '}
+              control in the site header — swap there before hopping between tenant
+              and landlord tools.
+            </p>
+          : null}
         </div>
       </div>
     </div>

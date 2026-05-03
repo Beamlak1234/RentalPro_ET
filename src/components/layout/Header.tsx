@@ -1,7 +1,9 @@
 import {
+  Bell,
   CircleHelp,
   LayoutDashboard,
   LogOut,
+  Map,
   Menu,
   User,
   X,
@@ -23,6 +25,43 @@ const desktopAccent =
 
 const helpIconButtonClass =
   'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300'
+
+function ParticipantWorkspaceSelect({
+  onAfterNavigate,
+}: {
+  onAfterNavigate?: () => void
+}) {
+  const { user, switchParticipantWorkspace } = useAuth()
+  const navigate = useNavigate()
+
+  const dual =
+    user?.participantEntitlements?.tenant === true &&
+    user.participantEntitlements.landlord === true
+  if (!dual || !user) return null
+
+  return (
+    <label className="flex min-h-11 max-w-[200px] items-center gap-2 md:max-w-none">
+      <span className="hidden text-[11px] font-semibold uppercase tracking-wide text-slate-400 lg:inline">
+        Workspace
+      </span>
+      <select
+        className="w-full rounded-md border border-white/25 bg-[#0f172a] px-2 py-2 text-[14px] font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 lg:py-2"
+        aria-label="Switch between tenant and landlord workspace"
+        value={user.role}
+        onChange={(event) => {
+          const mode = event.target.value
+          if (mode !== 'tenant' && mode !== 'landlord') return
+          const outcome = switchParticipantWorkspace(mode)
+          if (outcome.ok) navigate(dashboardPath(mode), { replace: true })
+          onAfterNavigate?.()
+        }}
+      >
+        <option value="tenant">Tenant</option>
+        <option value="landlord">Landlord</option>
+      </select>
+    </label>
+  )
+}
 
 function HelpFooterLink({ className }: { className?: string }) {
   return (
@@ -89,6 +128,11 @@ export function Header() {
                   <LayoutDashboard className="size-4 opacity-90" aria-hidden />
                   Dashboard
                 </NavLink>
+                {(user.role === 'tenant' || user.role === 'landlord') &&
+                user.participantEntitlements?.tenant &&
+                user.participantEntitlements.landlord ?
+                  <ParticipantWorkspaceSelect />
+                : null}
                 {user.role === 'tenant' || user.role === 'landlord' ? (
                   <NavLink
                     to={participantProfilePath(user.role)}
@@ -98,6 +142,73 @@ export function Header() {
                     Profile
                   </NavLink>
                 ) : null}
+                {user.role === 'tenant' ? (
+                  <NavLink
+                    to="/tenant/notifications"
+                    className={`${navLinkClass} ${desktopAccent} hidden items-center gap-1.5 px-2 lg:inline-flex`}
+                  >
+                    <Bell className="size-4 opacity-90" aria-hidden />
+                    Alerts
+                  </NavLink>
+                ) : null}
+                {user.role === 'landlord' ?
+                  <>
+                    <NavLink
+                      to="/landlord/properties"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
+                    >
+                      Properties
+                    </NavLink>
+                    <NavLink
+                      to="/landlord/contracts"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
+                    >
+                      Contracts
+                    </NavLink>
+                    <NavLink
+                      to="/landlord/reports"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
+                    >
+                      Reports
+                    </NavLink>
+                    <NavLink
+                      to="/landlord/notifications"
+                      className={`${navLinkClass} ${desktopAccent} inline-flex items-center gap-1.5 px-2`}
+                    >
+                      <Bell className="size-4 opacity-90" aria-hidden />
+                      Inbox
+                    </NavLink>
+                  </>
+                : null}
+                {user.role === 'officer' ?
+                  <>
+                    <NavLink
+                      to="/officer/participants"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
+                    >
+                      Participants
+                    </NavLink>
+                    <NavLink
+                      to="/officer/properties-review"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
+                    >
+                      Props review
+                    </NavLink>
+                    <NavLink
+                      to="/officer/contracts-review"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
+                    >
+                      Contracts review
+                    </NavLink>
+                    <NavLink
+                      to="/officer/map"
+                      className={`${navLinkClass} ${desktopAccent} hidden items-center gap-1 px-2 xl:inline-flex`}
+                    >
+                      <Map className="size-4 opacity-90" aria-hidden />
+                      Map
+                    </NavLink>
+                  </>
+                : null}
                 <button
                   type="button"
                   className={`${navLinkClass} ${desktopAccent} inline-flex items-center gap-1.5 px-2 text-left`}
@@ -162,6 +273,16 @@ export function Header() {
               >
                 Dashboard
               </NavLink>
+              {(user.role === 'tenant' || user.role === 'landlord') &&
+              user.participantEntitlements?.tenant &&
+              user.participantEntitlements.landlord ?
+                <div className="px-1 py-2">
+                  <ParticipantWorkspaceSelect onAfterNavigate={closeMobile} />
+                  <p className="mt-2 text-xs text-slate-400">
+                    Switch workspace before opening the other menus.
+                  </p>
+                </div>
+              : null}
               {user.role === 'tenant' || user.role === 'landlord' ? (
                 <NavLink
                   to={participantProfilePath(user.role)}
@@ -172,6 +293,82 @@ export function Header() {
                   Profile
                 </NavLink>
               ) : null}
+              {user.role === 'tenant' ? (
+                <NavLink
+                  to="/tenant/notifications"
+                  className={`${navLinkClass} ${accent} inline-flex items-center gap-2`}
+                  onClick={closeMobile}
+                >
+                  <Bell className="size-4 shrink-0" aria-hidden />
+                  Alerts
+                </NavLink>
+              ) : null}
+              {user.role === 'landlord' ?
+                <>
+                  <NavLink
+                    to="/landlord/properties"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Properties
+                  </NavLink>
+                  <NavLink
+                    to="/landlord/contracts"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Contracts
+                  </NavLink>
+                  <NavLink
+                    to="/landlord/reports"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Reports
+                  </NavLink>
+                  <NavLink
+                    to="/landlord/notifications"
+                    className={`${navLinkClass} ${accent} inline-flex items-center gap-2`}
+                    onClick={closeMobile}
+                  >
+                    <Bell className="size-4 shrink-0" aria-hidden />
+                    Inbox
+                  </NavLink>
+                </>
+              : null}
+              {user.role === 'officer' ?
+                <>
+                  <NavLink
+                    to="/officer/participants"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Participants
+                  </NavLink>
+                  <NavLink
+                    to="/officer/properties-review"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Props review
+                  </NavLink>
+                  <NavLink
+                    to="/officer/contracts-review"
+                    className={`${navLinkClass} ${accent}`}
+                    onClick={closeMobile}
+                  >
+                    Contracts review
+                  </NavLink>
+                  <NavLink
+                    to="/officer/map"
+                    className={`${navLinkClass} ${accent} inline-flex items-center gap-2`}
+                    onClick={closeMobile}
+                  >
+                    <Map className="size-4 shrink-0" aria-hidden />
+                    Map
+                  </NavLink>
+                </>
+              : null}
               <button
                 type="button"
                 className={`${navLinkClass} ${accent} inline-flex items-center gap-2 text-left`}

@@ -1,8 +1,10 @@
-export type ContractFilterStatus =
-  | 'all'
-  | 'active'
-  | 'pending'
-  | 'pending_confirmation'
+/**
+ * Lifecycle bucket for filtering / dashboards (distinct from confirmation status flag).
+ */
+export type TenantContractListBucket = 'active' | 'pending' | 'amendment'
+
+/** Filter UI: aligns with buckets (Pending = awaiting confirmation etc.) */
+export type ContractFilterStatus = 'all' | TenantContractListBucket
 
 /** Row shown on dashboard summary */
 export interface TenantContractSummaryRow {
@@ -10,7 +12,7 @@ export interface TenantContractSummaryRow {
   label: string
   statusDisplay: string
   paymentAmount: number
-  statusTone: 'active' | 'pending'
+  statusTone: 'active' | 'pending' | 'amendment'
 }
 
 /** Full mock record for list + detail */
@@ -19,7 +21,9 @@ export interface TenantContractRecord {
   title: string
   unit: string
   rentEtb: number
-  /** For filtering + list badges */
+  /** For filtering + badges */
+  listBucket: TenantContractListBucket
+  /** Stored workflow status */
   status: 'active' | 'pending_confirmation'
   dateLabel: string
   landlordName: string
@@ -38,6 +42,7 @@ export const MOCK_TENANT_CONTRACTS: TenantContractRecord[] = [
     title: 'Bole Condominium',
     unit: 'Unit 305',
     rentEtb: 4500,
+    listBucket: 'amendment',
     status: 'active',
     dateLabel: '12 Mar 2026',
     landlordName: 'Meron Alemayehu',
@@ -53,6 +58,7 @@ export const MOCK_TENANT_CONTRACTS: TenantContractRecord[] = [
     title: 'Arada Shop',
     unit: 'Unit 305',
     rentEtb: 8500,
+    listBucket: 'pending',
     status: 'pending_confirmation',
     dateLabel: '05 Apr 2026',
     landlordName: 'Ahmed Mohammed',
@@ -67,6 +73,7 @@ export const MOCK_TENANT_CONTRACTS: TenantContractRecord[] = [
     title: 'Lideta Heights',
     unit: 'Unit 12B',
     rentEtb: 12000,
+    listBucket: 'active',
     status: 'active',
     dateLabel: '02 Feb 2026',
     landlordName: 'Yared Bekele',
@@ -88,15 +95,31 @@ const DASHBOARD_PAYMENT_ETB: Record<string, number> = {
   'lideta-ha': 20000,
 }
 
+function badgeForBucket(bucket: TenantContractListBucket): {
+  label: string
+  tone: TenantContractSummaryRow['statusTone']
+} {
+  switch (bucket) {
+    case 'pending':
+      return { label: 'Pending', tone: 'pending' }
+    case 'amendment':
+      return { label: 'Amendment', tone: 'amendment' }
+    default:
+      return { label: 'Active', tone: 'active' }
+  }
+}
+
 export function getDashboardContractRows(): TenantContractSummaryRow[] {
-  return MOCK_TENANT_CONTRACTS.map((c) => ({
-    id: c.id,
-    label: c.title.length > 10 ? `${c.title.slice(0, 9)}…` : c.title,
-    statusDisplay:
-      c.status === 'pending_confirmation' ? 'Pending' : 'Active',
-    paymentAmount: DASHBOARD_PAYMENT_ETB[c.id] ?? c.rentEtb,
-    statusTone: c.status === 'pending_confirmation' ? 'pending' : 'active',
-  }))
+  return MOCK_TENANT_CONTRACTS.map((c) => {
+    const badge = badgeForBucket(c.listBucket)
+    return {
+      id: c.id,
+      label: c.title.length > 10 ? `${c.title.slice(0, 9)}…` : c.title,
+      statusDisplay: badge.label,
+      paymentAmount: DASHBOARD_PAYMENT_ETB[c.id] ?? c.rentEtb,
+      statusTone: badge.tone,
+    }
+  })
 }
 
 export function filterTenantContracts(
@@ -112,12 +135,23 @@ export function filterTenantContracts(
       c.unit.toLowerCase().includes(q) ||
       c.contractNumber.toLowerCase().includes(q)
 
-    let matchesFilter = true
-    if (filter === 'active') matchesFilter = c.status === 'active'
-    else if (filter === 'pending' || filter === 'pending_confirmation') {
-      matchesFilter = c.status === 'pending_confirmation'
-    }
+    const matchesFilter = filter === 'all' || c.listBucket === filter
 
     return matchesSearch && matchesFilter
   })
+}
+
+/** Count buckets for dashboard summary pills */
+export function countTenantBuckets(
+  list: TenantContractRecord[],
+): Record<TenantContractListBucket, number> {
+  const out: Record<TenantContractListBucket, number> = {
+    active: 0,
+    pending: 0,
+    amendment: 0,
+  }
+  list.forEach((c) => {
+    out[c.listBucket]++
+  })
+  return out
 }

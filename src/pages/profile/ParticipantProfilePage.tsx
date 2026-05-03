@@ -5,6 +5,7 @@ import {
   DIGITAL_ID_VERIFICATION_LABELS,
   type DigitalIdVerificationStatus,
   type ParticipantProfile,
+  type UiLanguagePreference,
 } from '../../auth/participantProfile'
 import { findAccountById, loadAccounts, type PersistedAccount } from '../../auth/storage'
 import { Button } from '../../components/ui/Button'
@@ -15,6 +16,7 @@ import {
   signInPathForRole,
 } from '../../constants/roles'
 import type { AuthRole } from '../../constants/roles'
+import { PROFILE_REFRESH_EVENT } from '../../hooks/useParticipantUiPrefs'
 import { useAuth } from '../../hooks/useAuth'
 
 type Props = { expectedRole: Extract<AuthRole, 'tenant' | 'landlord'> }
@@ -58,12 +60,15 @@ function ParticipantProfileEditor({
       digitalIdVerificationStatus: form.digitalIdVerificationStatus,
       emergencyContactName: form.emergencyContactName.trim(),
       emergencyContactPhone: form.emergencyContactPhone.trim(),
+      preferredLanguage: form.preferredLanguage,
+      landlordSubCity: form.landlordSubCity.trim(),
     })
     setBusy(false)
     if (!res.ok) {
       setError(res.error)
       return
     }
+    window.dispatchEvent(new Event(PROFILE_REFRESH_EVENT))
     onSaved?.()
   }
 
@@ -130,6 +135,56 @@ function ParticipantProfileEditor({
           value={form.digitalIdFaydaRef}
           onChange={(e) => setField('digitalIdFaydaRef', e.target.value)}
         />
+
+        <div className="flex w-full flex-col gap-1.5">
+          <label
+            className="text-base font-medium text-slate-700"
+            htmlFor="ui-language"
+          >
+            Preferred language / ቋንቋ
+          </label>
+          <select
+            id="ui-language"
+            className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/20"
+            value={form.preferredLanguage}
+            onChange={(e) =>
+              setField(
+                'preferredLanguage',
+                e.target.value as UiLanguagePreference,
+              )
+            }
+          >
+            <option value="en">English</option>
+            <option value="am">አማርኛ (Amharic)</option>
+          </select>
+        </div>
+
+        {expectedRole === 'landlord' ?
+          <div className="flex w-full flex-col gap-1.5">
+            <label
+              className="text-base font-medium text-slate-700"
+              htmlFor="landlord-subcity"
+            >
+              Sub-city (Addis Ababa convention)
+            </label>
+            <select
+              id="landlord-subcity"
+              className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/20"
+              value={form.landlordSubCity || ''}
+              onChange={(e) => setField('landlordSubCity', e.target.value)}
+            >
+              <option value="">Select…</option>
+              <option value="Arada">Arada</option>
+              <option value="Bole">Bole</option>
+              <option value="Kirkos">Kirkos</option>
+              <option value="Kolfe Keranio">Kolfe Keranio</option>
+              <option value="Lideta">Lideta</option>
+              <option value="Nifas Silk-Lafto">Nifas Silk-Lafto</option>
+              <option value="Yeka">Yeka</option>
+              <option value="Other">Other / regional</option>
+            </select>
+          </div>
+        : null}
 
         <div className="flex w-full flex-col gap-1.5">
           <label
@@ -268,7 +323,7 @@ export function ParticipantProfilePage({ expectedRole }: Props) {
       : null}
 
       <ParticipantProfileEditor
-        key={`${account.id}:${account.participantProfile.profileUpdatedAt}`}
+        key={`${account.id}:${account.participantProfile.profileUpdatedAt}:${account.participantProfile.preferredLanguage}:${account.participantProfile.landlordSubCity}`}
         account={account}
         expectedRole={expectedRole}
         onSaved={() =>

@@ -1,6 +1,11 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
+import {
+  findAccountByEmail,
+  loadAccounts,
+  persistedAccountMatchesExpectedRole,
+} from '../../auth/storage'
 import { AuthCard } from '../../components/auth/AuthCard'
 import { Button } from '../../components/ui/Button'
 import { dashboardPath } from '../../constants/roles'
@@ -10,11 +15,24 @@ import { Input } from '../../components/ui/Input'
 export function AdminSignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, login } = useAuth()
+  const { user, login, authShellEpoch } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const emailLookup = email.trim()
+      setPassword((currentPw) => {
+        if (currentPw.trim() !== '') return currentPw
+        const acc = findAccountByEmail(loadAccounts(), emailLookup)
+        if (!acc || !persistedAccountMatchesExpectedRole(acc, 'admin')) return currentPw
+        return acc.password
+      })
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [email])
 
   if (user?.role === 'admin') {
     return <Navigate to="/admin/dashboard" replace />
@@ -49,13 +67,24 @@ export function AdminSignInPage() {
       title="Admin sign-in"
       subtitle="Privileged access. No public registration — accounts are issued by your organization."
       footer={
-        <p className="text-center text-sm text-slate-500">
-          Need tenant, landlord, or officer access?{' '}
-          <Link className="font-medium text-[#1e293b] underline" to="/">
-            Go to welcome
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
+          <Link
+            to="/"
+            className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
+          >
+            Home
           </Link>
-          .
-        </p>
+          <span>
+            Participant / officer access starts on{' '}
+            <Link
+              className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
+              to="/"
+            >
+              the welcome page
+            </Link>
+            .
+          </span>
+        </div>
       }
     >
       <p className="rounded-lg bg-amber-50 px-4 py-3 text-left text-sm text-amber-950 ring-1 ring-amber-100">
@@ -73,6 +102,7 @@ export function AdminSignInPage() {
         className="mt-6 flex flex-col gap-5"
         onSubmit={handleSubmit}
         noValidate
+        autoComplete="on"
       >
         {error ? (
           <p
@@ -83,10 +113,11 @@ export function AdminSignInPage() {
           </p>
         ) : null}
         <Input
+          key={`adm-email-${authShellEpoch}`}
           name="email"
           type="email"
           label="Work email"
-          autoComplete="email"
+          autoComplete="username email"
           placeholder="you@agency.gov.et"
           required
           labelClassName="text-base"
@@ -94,6 +125,7 @@ export function AdminSignInPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
+          key={`adm-pw-${authShellEpoch}`}
           name="password"
           type="password"
           label="Password"
@@ -112,6 +144,14 @@ export function AdminSignInPage() {
         >
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
+        <p className="text-center">
+          <Link
+            className="inline-flex min-h-11 items-center justify-center px-2 text-sm font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
+            to="/admin/forgot-password"
+          >
+            Forgot password?
+          </Link>
+        </p>
       </form>
     </AuthCard>
   )

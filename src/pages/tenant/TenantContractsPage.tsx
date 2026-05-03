@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { useMemo, useState, type ReactNode } from 'react'
 
 import {
   MOCK_TENANT_CONTRACTS,
@@ -13,11 +13,28 @@ const FILTER_OPTIONS: { value: ContractFilterStatus; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'pending', label: 'Pending' },
   { value: 'active', label: 'Active' },
+  { value: 'amendment', label: 'Amendment' },
 ]
 
-export function TenantContractsPage() {
+function isContractFilter(value: unknown): value is ContractFilterStatus {
+  return (
+    value === 'all' ||
+    value === 'pending' ||
+    value === 'active' ||
+    value === 'amendment'
+  )
+}
+
+function TenantContractsBody() {
+  const location = useLocation()
+  const fromNav = (
+    location.state as { filter?: ContractFilterStatus } | undefined
+  )?.filter
+  const initialFilter: ContractFilterStatus =
+    fromNav !== undefined && isContractFilter(fromNav) ? fromNav : 'all'
+
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<ContractFilterStatus>('all')
+  const [filter, setFilter] = useState<ContractFilterStatus>(initialFilter)
 
   const filtered = useMemo(
     () => filterTenantContracts(MOCK_TENANT_CONTRACTS, search, filter),
@@ -56,13 +73,13 @@ export function TenantContractsPage() {
               aria-label="Search contracts"
             />
           </div>
-          <div className="flex shrink-0 gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+          <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
             {FILTER_OPTIONS.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
-                className={`min-h-10 flex-1 rounded-md px-3 text-sm font-semibold transition sm:flex-none ${
+                className={`min-h-10 rounded-md px-2.5 text-xs font-semibold transition sm:px-3 sm:text-sm ${
                   filter === value
                     ? 'bg-white text-[#1e293b] shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -91,11 +108,18 @@ export function TenantContractsPage() {
                     Rent: {c.rentEtb.toLocaleString()} ETB
                   </p>
                   <p className="mt-2 text-sm text-slate-600">
-                    <span className="font-medium text-slate-800">Status:</span>{' '}
+                    <span className="font-medium text-slate-800">Lifecycle:</span>{' '}
+                    {c.listBucket === 'pending'
+                      ? 'Pending'
+                      : c.listBucket === 'amendment'
+                        ? 'Amendment'
+                        : 'Active'}
+                    {' · '}
                     {c.status === 'pending_confirmation'
-                      ? 'Pending confirmation'
-                      : 'Active'}{' '}
-                    <span className="text-slate-400">|</span> {c.dateLabel}
+                      ? 'Awaiting your confirmation'
+                      : 'Lease in effect'}
+                    <span className="text-slate-400"> · </span>
+                    {c.dateLabel}
                   </p>
                   <Link
                     to={`/tenant/contracts/${c.id}`}
@@ -111,4 +135,9 @@ export function TenantContractsPage() {
       </div>
     </>
   )
+}
+
+export function TenantContractsPage(): ReactNode {
+  const { key } = useLocation()
+  return <TenantContractsBody key={key} />
 }

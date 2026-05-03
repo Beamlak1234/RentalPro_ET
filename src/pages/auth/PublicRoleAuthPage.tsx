@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   Link,
   Navigate,
@@ -8,6 +8,11 @@ import {
 } from 'react-router-dom'
 
 import type { ParticipantRegistrationDraft } from '../../auth/participantProfile'
+import {
+  findAccountByEmail,
+  loadAccounts,
+  persistedAccountMatchesExpectedRole,
+} from '../../auth/storage'
 
 import { AuthCard } from '../../components/auth/AuthCard'
 import { GovPageSurface } from '../../components/layout/GovPageSurface'
@@ -20,14 +25,21 @@ import {
   type PublicAuthRole,
 } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
+import { enqueueAccessFlashBanner } from '../../navigation/pendingAccessFlash'
 
 type Mode = 'sign-in' | 'sign-up'
+
+/** Router state when opening participant auth from the government portal. */
+type PublicAuthLocationState = {
+  from?: { pathname: string }
+  fromGovernment?: boolean
+}
 
 function postAuthPathname(
   role: PublicAuthRole,
   location: ReturnType<typeof useLocation>,
 ): string {
-  const st = location.state as { from?: { pathname: string } } | undefined
+  const st = location.state as PublicAuthLocationState | undefined
   const from = st?.from?.pathname
   if (
     from &&
@@ -56,7 +68,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
   const { role: roleParam } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, login, register } = useAuth()
+  const { user, login, register, authShellEpoch } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -71,17 +83,77 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  useEffect(() => {
+    if (
+      mode !== 'sign-in' ||
+      !roleParam ||
+      !isPublicAuthRole(roleParam)
+    ) {
+      return
+    }
+    const roleForStoredMatch: PublicAuthRole = roleParam
+    const timer = window.setTimeout(() => {
+      const emailLookup = email.trim()
+      setPassword((currentPw) => {
+        if (currentPw.trim() !== '') return currentPw
+        const acc = findAccountByEmail(loadAccounts(), emailLookup)
+        if (!acc || !persistedAccountMatchesExpectedRole(acc, roleForStoredMatch))
+          return currentPw
+        return acc.password
+      })
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [email, mode, roleParam])
+
   if (!roleParam || !isPublicAuthRole(roleParam)) {
     return <Navigate to="/" replace />
   }
 
+  const role: PublicAuthRole = roleParam
+
   if (user) {
-    return <Navigate to={dashboardPath(user.role)} replace />
+    if (user.role === 'admin') {
+      enqueueAccessFlashBanner(
+        'You are signed in as platform admin. Participant and officer sign-up use separate demo workspaces.',
+      )
+      return <Navigate to="/admin/dashboard" replace />
+    }
+
+    if (role === 'officer' && user.role !== 'officer') {
+      enqueueAccessFlashBanner(
+        'Government officer registration and sign-in are limited to authorised officer accounts.',
+      )
+      return <Navigate to={dashboardPath(user.role)} replace />
+    }
+
+    if ((role === 'tenant' || role === 'landlord') && user.role === 'officer') {
+      enqueueAccessFlashBanner(
+        'You are in the officer console. Participant signup is intentionally separate.',
+      )
+      return <Navigate to="/officer/dashboard" replace />
+    }
+
+    if (role === user.role && (role === 'tenant' || role === 'landlord')) {
+      return <Navigate to={dashboardPath(user.role)} replace />
+    }
+
+    if (role === 'officer' && user.role === 'officer') {
+      return <Navigate to="/officer/dashboard" replace />
+    }
   }
 
-  const role: PublicAuthRole = roleParam
   const label = ROLE_LABELS[role]
   const participantRole = role === 'tenant' || role === 'landlord'
+
+  const prevAuthLocationState =
+    location.state as PublicAuthLocationState | undefined
+  const fromGovernmentEnrollment = prevAuthLocationState?.fromGovernment === true
+  const authNavState: PublicAuthLocationState | undefined = fromGovernmentEnrollment ?
+    {
+      ...prevAuthLocationState,
+      fromGovernment: true,
+    }
+  : undefined
 
   function patchDraft(patch: Partial<ParticipantRegistrationDraft>) {
     setParticipantDraft((prev) => ({ ...prev, ...patch }))
@@ -132,35 +204,53 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
           mode === 'sign-in'
             ? 'Welcome back. Use the email you registered for this role.'
             : role === 'officer'
-              ? `Register as ${label.toLowerCase()}. You can choose other roles separately with another email later if needed.`
-              : `Register as ${label.toLowerCase()}. Officers can review participant fields in this browser demo storage only — not verified ID.`
+              ? `Register as ${label.toLowerCase()}. Officer access stays isolated from tenant / landlord—even if someone rents and lets out property, they still need a separate officer credential in this demo.`
+              : `Register as ${label.toLowerCase()}. Already have the other participant workspace? Use the same email + password and complete the form again—this demo merges tenant + landlord into one account.`
         }
         footer={
-          <p className="text-center text-sm text-slate-600">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
+            <Link
+              to="/"
+              className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
+            >
+              Home
+            </Link>
             {mode === 'sign-in' ? (
-              <>
+              <span>
                 New here?{' '}
                 <Link
-                  className="font-semibold text-[#1e293b] underline"
+                  className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
                   to={`/auth/${role}/sign-up`}
+                  state={authNavState}
                 >
                   Create an account
                 </Link>
-              </>
+              </span>
             ) : (
-              <>
+              <span>
                 Already registered?{' '}
                 <Link
-                  className="font-semibold text-[#1e293b] underline"
+                  className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
                   to={`/auth/${role}/sign-in`}
+                  state={authNavState}
                 >
                   Sign in
                 </Link>
-              </>
+              </span>
             )}
-          </p>
+          </div>
         }
       >
+        {fromGovernmentEnrollment && participantRole ?
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
+            <strong className="font-semibold">Government desk context.</strong>{' '}
+            Tenant and landlord accounts use participant credentials stored and
+            managed separately from your officer workstation. Signing in here is
+            for personal rental enrolment—not for acting on behalf of regulated
+            review inside the officer console.
+          </div>
+        : null}
+
         {mode === 'sign-up' && participantRole ? (
           <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
             <strong className="font-semibold">Prototype only.</strong> Data stays in{' '}
@@ -172,7 +262,12 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
           </div>
         ) : null}
 
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
+        <form
+          className="flex flex-col gap-5"
+          onSubmit={handleSubmit}
+          noValidate
+          autoComplete="on"
+        >
           {error ? (
             <p
               className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100"
@@ -296,10 +391,15 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
           ) : null}
 
           <Input
+            key={
+              mode === 'sign-in' ?
+                `rp-email-${role}-${authShellEpoch}`
+              : `rp-email-${role}-reg`
+            }
             name="email"
             type="email"
             label="Email"
-            autoComplete="email"
+            autoComplete={mode === 'sign-in' ? 'username email' : 'email'}
             placeholder={`you@example.com (${label})`}
             labelClassName="text-base"
             value={email}
@@ -308,6 +408,11 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
           />
 
           <Input
+            key={
+              mode === 'sign-in' ?
+                `rp-pw-${role}-${authShellEpoch}`
+              : `rp-pw-${role}-reg`
+            }
             name="password"
             type="password"
             label="Password"
@@ -346,6 +451,17 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
               'Sign in'
             : 'Create account'}
           </Button>
+          {mode === 'sign-in' ?
+            <p className="text-center">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center px-2 text-sm font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
+                to={`/auth/${role}/forgot-password`}
+                state={participantRole ? authNavState : undefined}
+              >
+                Forgot password?
+              </Link>
+            </p>
+          : null}
         </form>
 
         <p className="mt-5 text-center text-xs text-slate-500">

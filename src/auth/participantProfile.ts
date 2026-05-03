@@ -12,6 +12,8 @@ export const DIGITAL_ID_VERIFICATION_LABELS: Record<
   verified_demo: 'Verified (demo stub)',
 }
 
+export type UiLanguagePreference = 'en' | 'am'
+
 export type ParticipantProfile = {
   legalFullName: string
   phone: string
@@ -23,6 +25,10 @@ export type ParticipantProfile = {
   digitalIdVerificationStatus: DigitalIdVerificationStatus
   emergencyContactName: string
   emergencyContactPhone: string
+  /** UI language preference (tenant/landlord). */
+  preferredLanguage: UiLanguagePreference
+  /** Landlord-focused sub-city (Addis convention); optional demo field. */
+  landlordSubCity: string
   /** ISO timestamp when profile fields were last saved. */
   profileUpdatedAt: string
   /** Set on sign-up when user accepts prototype consent (ISO). */
@@ -53,6 +59,8 @@ export function createDefaultParticipantProfile(
     digitalIdVerificationStatus: 'unverified',
     emergencyContactName: '',
     emergencyContactPhone: '',
+    preferredLanguage: 'en',
+    landlordSubCity: '',
     profileUpdatedAt: now,
     demoConsentAcceptedAt: null,
   }
@@ -74,9 +82,15 @@ export function profileFromRegistration(
     digitalIdVerificationStatus: 'unverified',
     emergencyContactName: draft.emergencyContactName.trim(),
     emergencyContactPhone: draft.emergencyContactPhone.trim(),
+    preferredLanguage: 'en',
+    landlordSubCity: '',
     profileUpdatedAt: now,
     demoConsentAcceptedAt: consentIso,
   }
+}
+
+function isUiLanguagePreference(value: unknown): value is UiLanguagePreference {
+  return value === 'en' || value === 'am'
 }
 
 function isDigitalIdVerificationStatus(
@@ -133,5 +147,12 @@ export function normalizeParticipantProfile(
         : typeof o.demoConsentAcceptedAt === 'string'
           ? o.demoConsentAcceptedAt
           : base.demoConsentAcceptedAt,
+    preferredLanguage: isUiLanguagePreference(o.preferredLanguage)
+      ? o.preferredLanguage
+      : base.preferredLanguage,
+    landlordSubCity:
+      typeof o.landlordSubCity === 'string'
+        ? o.landlordSubCity.trim()
+        : base.landlordSubCity,
   }
 }

@@ -1,6 +1,7 @@
 import { ArrowLeft, LogOut } from 'lucide-react'
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 
+import { AccessFlashBanner } from '../feedback/AccessFlashBanner'
 import { useAuth } from '../../hooks/useAuth'
 
 import { GovPageSurface } from './GovPageSurface'
@@ -12,8 +13,11 @@ export function AdminLayout() {
 
   function handleLogout() {
     logout()
-    navigate('/admin/sign-in', { replace: true })
+    navigate('/', { replace: true })
   }
+
+  const adminNavLink =
+    '[&.active]:bg-white/18 [&.active]:text-white text-slate-200 hover:bg-white/10 hover:text-white'
 
   return (
     <GovPageSurface variant="admin" topAccent className="min-h-svh">
@@ -44,8 +48,52 @@ export function AdminLayout() {
           </div>
         </div>
       </header>
-      <div className="flex flex-1 flex-col items-center px-4 py-10 sm:py-14">
-        <Outlet />
+      {isAdmin ?
+        <div className="border-b border-slate-700/40 bg-[#1e293b]">
+          <nav
+            aria-label="Admin"
+            className="mx-auto flex max-w-6xl flex-wrap gap-2 px-4 py-3 sm:px-6"
+          >
+            <NavLink
+              to="/admin/dashboard"
+              className={`rounded-md px-3 py-2 text-sm font-semibold ${adminNavLink}`}
+            >
+              Overview
+            </NavLink>
+            <NavLink
+              to="/admin/users"
+              className={`rounded-md px-3 py-2 text-sm font-semibold ${adminNavLink}`}
+            >
+              Users
+            </NavLink>
+            <NavLink
+              to="/admin/settings"
+              className={`rounded-md px-3 py-2 text-sm font-semibold ${adminNavLink}`}
+            >
+              Configuration
+            </NavLink>
+            <NavLink
+              to="/admin/sub-cities"
+              className={`rounded-md px-3 py-2 text-sm font-semibold ${adminNavLink}`}
+            >
+              Sub-cities
+            </NavLink>
+            <NavLink
+              to="/admin/synthetic"
+              className={`rounded-md px-3 py-2 text-sm font-semibold ${adminNavLink}`}
+            >
+              Synthetic data
+            </NavLink>
+          </nav>
+        </div>
+      : null}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="order-first shrink-0 w-full">
+          <AccessFlashBanner />
+        </div>
+        <div className="flex flex-1 flex-col items-center px-4 py-10 sm:py-14">
+          <Outlet />
+        </div>
       </div>
     </GovPageSurface>
   )
