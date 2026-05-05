@@ -31,9 +31,9 @@ export function Footer() {
             <li>
               <Link
                 className="text-slate-400 underline-offset-2 hover:text-white hover:underline"
-                to="/government"
+                to="/auth/officer/sign-in"
               >
-                Government / officer access
+                Officer sign-in
               </Link>
             </li>
           </ul>
@@ -85,13 +85,14 @@ export function Footer() {
           </ul>
           <p className="mt-4 text-xs leading-relaxed text-slate-400">
             Government officers should use institution-issued channels, not this
-            public mailbox.{' '}
+            public mailbox. Officer workspace sign-in:{' '}
             <Link
               className="font-medium text-slate-300 underline-offset-2 hover:text-white hover:underline"
-              to="/government"
+              to="/auth/officer/sign-in"
             >
-              Officer portal
+              /auth/officer/sign-in
             </Link>
+            .
           </p>
           <p className="mt-3">
             <Link
@@ -107,9 +108,9 @@ export function Footer() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-4 text-center lg:px-6">
           <Link
             className="text-xs text-slate-500 underline-offset-2 hover:text-slate-400 hover:underline"
-            to="/government"
+            to="/auth/officer/sign-in"
           >
-            Government / officer access
+            Officer sign-in
           </Link>
           <Link
             className="text-xs text-slate-500 underline-offset-2 hover:text-slate-400 hover:underline"

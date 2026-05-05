@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 
 import {
   applyParticipantProfilePatch,
@@ -47,6 +48,20 @@ function readUserFromStorage(): AuthUser | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readUserFromStorage())
   const [authShellEpoch, bumpAuthShellEpoch] = useState(0)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const signingOutRef = useRef(false)
+
+  const startSigningOut = useCallback(() => {
+    signingOutRef.current = true
+    flushSync(() => {
+      setIsSigningOut(true)
+    })
+  }, [])
+
+  const clearSigningOut = useCallback(() => {
+    signingOutRef.current = false
+    setIsSigningOut(false)
+  }, [])
 
   const login = useCallback(
     (
@@ -73,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setSessionUserId(match.id)
       setUser(accountToUser(match))
+      signingOutRef.current = false
+      setIsSigningOut(false)
       return { ok: true }
     },
     [],
@@ -136,6 +153,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setSessionUserId(created.account.id)
     setUser(accountToUser(created.account))
+    signingOutRef.current = false
+    setIsSigningOut(false)
     return { ok: true as const }
   }, [])
 
@@ -189,6 +208,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setSessionUserId(null)
     setUser(null)
+    signingOutRef.current = false
+    setIsSigningOut(false)
     // Helps auth shells remount input nodes so browser autofill is less sticky after demo sign-out.
     bumpAuthShellEpoch((n) => n + 1)
   }, [])
@@ -202,12 +223,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       switchParticipantWorkspace,
       logout,
       authShellEpoch,
+      isSigningOut,
+      signingOutRef,
+      startSigningOut,
+      clearSigningOut,
     }),
     [
       authShellEpoch,
+      clearSigningOut,
+      isSigningOut,
       login,
       logout,
       register,
+      startSigningOut,
+      signingOutRef,
       switchParticipantWorkspace,
       updateParticipantProfile,
       user,

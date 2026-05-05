@@ -63,15 +63,15 @@ export function ContactPage() {
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
               Do not use the public helpdesk for sensitive casework. Use the
-              channels and escalation paths issued by your institution. Access
-              the{' '}
+              channels and escalation paths issued by your institution. Officer
+              sign-in and onboarding guidance start from{' '}
               <Link
                 className="font-semibold text-[#1e293b] underline underline-offset-2 hover:no-underline"
-                to="/government"
+                to="/auth/officer/sign-in"
               >
-                Officer portal
-              </Link>{' '}
-              for sign-in and onboarding guidance.
+                the officer sign-in page
+              </Link>
+              .
             </p>
           </div>
 

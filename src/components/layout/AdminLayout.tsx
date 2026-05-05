@@ -1,20 +1,16 @@
 import { ArrowLeft, LogOut } from 'lucide-react'
-import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Link, Outlet } from 'react-router-dom'
 
 import { AccessFlashBanner } from '../feedback/AccessFlashBanner'
 import { useAuth } from '../../hooks/useAuth'
+import { useSignOutToHome } from '../../hooks/useSignOutToHome'
 
 import { GovPageSurface } from './GovPageSurface'
 
 export function AdminLayout() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
-
-  function handleLogout() {
-    logout()
-    navigate('/', { replace: true })
-  }
+  const signOutToHome = useSignOutToHome()
 
   const adminNavLink =
     '[&.active]:bg-white/18 [&.active]:text-white text-slate-200 hover:bg-white/10 hover:text-white'
@@ -38,7 +34,7 @@ export function AdminLayout() {
             {isAdmin ? (
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={signOutToHome}
                 className="inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
               >
                 <LogOut className="size-4" aria-hidden />

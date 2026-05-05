@@ -36,14 +36,9 @@ export function WelcomePage() {
             mobile.
           </p>
           <p className="mx-auto mt-4 max-w-xl text-pretty text-sm leading-relaxed text-slate-600">
-            Government officers use the{' '}
-            <Link
-              className="font-semibold text-[#1e293b] underline underline-offset-2 hover:no-underline"
-              to="/government"
-            >
-              officer portal
-            </Link>
-            {' '}— separate from this page.
+            Government officers use a separate workspace (bookmark or
+            institution-issued entry). This page is only for tenant and landlord
+            self-service.
           </p>
           <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
             <a
@@ -71,15 +66,14 @@ export function WelcomePage() {
             Tenant or landlord — choose one
           </h2>
           <p className="mt-3 text-pretty text-base text-slate-700 sm:text-lg">
-            We route you to the matching sign-up or sign-in flow. Officers sign
-            in through the{' '}
+            We route you to the matching sign-up or sign-in flow. Officers use{' '}
             <Link
               className="font-semibold text-[#1e293b] underline underline-offset-2 hover:no-underline"
-              to="/government"
+              to="/auth/officer/sign-in"
             >
-              dedicated government portal
-            </Link>
-            .
+              officer sign-in
+            </Link>{' '}
+            (not linked from the main navigation for participants).
           </p>
         </div>
 

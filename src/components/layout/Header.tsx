@@ -13,6 +13,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { dashboardPath, participantProfilePath } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
+import { useSignOutToHome } from '../../hooks/useSignOutToHome'
 
 const navLinkClass =
   'rounded-md px-3 py-3 text-[15px] font-medium transition-colors hover:bg-white/10 sm:py-2'
@@ -78,17 +79,16 @@ function HelpFooterLink({ className }: { className?: string }) {
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
+  const signOutToHome = useSignOutToHome()
 
   function closeMobile() {
     setMobileOpen(false)
   }
 
   function handleSignOut() {
-    logout()
-    navigate('/', { replace: true })
     closeMobile()
+    signOutToHome()
   }
 
   return (
@@ -113,12 +113,14 @@ export function Header() {
             <a href="/#roles" className={`${navLinkClass} ${desktopAccent} px-2`}>
               Choose role
             </a>
-            <NavLink
-              to="/government"
-              className={`${navLinkClass} ${desktopAccent} px-2 text-slate-300/95 hover:text-white`}
-            >
-              Government
-            </NavLink>
+            {user?.role === 'officer' ? (
+              <NavLink
+                to="/government"
+                className={`${navLinkClass} ${desktopAccent} px-2 text-slate-300/95 hover:text-white`}
+              >
+                Government
+              </NavLink>
+            ) : null}
             {user && user.role !== 'admin' ? (
               <>
                 <NavLink
@@ -257,13 +259,15 @@ export function Header() {
           >
             Choose role
           </a>
-          <NavLink
-            to="/government"
-            className={`${navLinkClass} ${accent}`}
-            onClick={closeMobile}
-          >
-            Government
-          </NavLink>
+          {user?.role === 'officer' ? (
+            <NavLink
+              to="/government"
+              className={`${navLinkClass} ${accent}`}
+              onClick={closeMobile}
+            >
+              Government
+            </NavLink>
+          ) : null}
           {user && user.role !== 'admin' ? (
             <>
               <NavLink

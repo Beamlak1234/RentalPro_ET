@@ -1,21 +1,13 @@
-import { Landmark, Shield, ChevronRight, Users } from 'lucide-react'
+import { Landmark, Shield, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { GovPageSurface } from '../../components/layout/GovPageSurface'
 import { dashboardPath } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 
-const fromGovernmentDeskState = { fromGovernment: true as const }
-
 export function GovernmentWelcomePage() {
   const { user } = useAuth()
   const participantBrowsingGovernment = Boolean(user?.participantEntitlements)
-  const officerLocksParticipantEnroll = user?.role === 'officer'
-
-  const participantPrimaryBtn =
-    'inline-flex min-h-11 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1e293b] px-4 text-sm font-semibold text-white shadow-sm hover:bg-[#334155] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e293b] sm:text-base'
-  const participantSecondaryBtn =
-    'inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border-2 border-[#1e293b] bg-white px-4 text-sm font-semibold text-[#1e293b] hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e293b] sm:text-base'
 
   return (
     <GovPageSurface variant="institutional" topAccent className="min-h-full">
@@ -111,89 +103,6 @@ export function GovernmentWelcomePage() {
                 >
                   Create officer account
                 </Link>
-              </div>
-            }
-          </div>
-
-          <div className="mt-10 rounded-2xl border border-slate-300/90 bg-white px-5 py-8 shadow-md sm:px-8 sm:py-10">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#1e293b]/12 text-[#1e293b] ring-1 ring-[#1e293b]/15">
-                <Users className="size-6" aria-hidden />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Participant enrolment gateway
-                </h2>
-                <p className="mt-2 text-pretty text-sm leading-relaxed text-slate-600 sm:text-base">
-                  Open tenant or landlord sign-in / registration without leaving this
-                  official channel—participant credentials remain separate from officer
-                  access. Prefer the{' '}
-                  <Link
-                    className="font-semibold text-[#1e293b] underline decoration-slate-300 underline-offset-2 hover:no-underline"
-                    to="/"
-                  >
-                    public welcome page
-                  </Link>{' '}
-                  when you do not want this desk context flagged.
-                </p>
-              </div>
-            </div>
-
-            {officerLocksParticipantEnroll ?
-              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:px-5">
-                <strong className="font-semibold">Sign out first.</strong> While signed
-                in as an officer, tenant and landlord sign-in / account creation cannot
-                be started from this portal—sign out, then reopen these links for
-                personal participant enrolment, or manage participants from{' '}
-                <Link
-                  className="font-semibold underline decoration-amber-600 underline-offset-2 hover:no-underline"
-                  to="/officer/participants"
-                >
-                  the participant directory
-                </Link>
-                .
-              </div>
-            : <div className="mt-8 space-y-8">
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900">Tenant</h3>
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                    <Link
-                      to="/auth/tenant/sign-in"
-                      state={fromGovernmentDeskState}
-                      className={participantPrimaryBtn}
-                    >
-                      Tenant sign in
-                      <ChevronRight className="size-5 opacity-90" aria-hidden />
-                    </Link>
-                    <Link
-                      to="/auth/tenant/sign-up"
-                      state={fromGovernmentDeskState}
-                      className={participantSecondaryBtn}
-                    >
-                      Create tenant account
-                    </Link>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900">Landlord</h3>
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                    <Link
-                      to="/auth/landlord/sign-in"
-                      state={fromGovernmentDeskState}
-                      className={participantPrimaryBtn}
-                    >
-                      Landlord sign in
-                      <ChevronRight className="size-5 opacity-90" aria-hidden />
-                    </Link>
-                    <Link
-                      to="/auth/landlord/sign-up"
-                      state={fromGovernmentDeskState}
-                      className={participantSecondaryBtn}
-                    >
-                      Create landlord account
-                    </Link>
-                  </div>
-                </div>
               </div>
             }
           </div>

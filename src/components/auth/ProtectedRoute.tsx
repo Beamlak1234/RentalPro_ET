@@ -46,10 +46,15 @@ export function ProtectedRoute({
   role: AuthRole
   children: ReactNode
 }) {
-  const { user } = useAuth()
+  const { user, isSigningOut, signingOutRef } = useAuth()
   const location = useLocation()
 
   if (!user) {
+    // Ref is set synchronously in startSigningOut before isSigningOut may commit; belt-and-suspenders with state.
+    // eslint-disable-next-line react-hooks/refs -- intentional sync read for sign-out path only
+    if (isSigningOut || signingOutRef.current) {
+      return <Navigate to="/" replace />
+    }
     return (
       <Navigate to={signInPathForRole(role)} replace state={{ from: location }} />
     )

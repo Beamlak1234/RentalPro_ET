@@ -215,6 +215,14 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             >
               Home
             </Link>
+            {role === 'officer' ? (
+              <Link
+                to="/government"
+                className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
+              >
+                Officer portal briefing
+              </Link>
+            ) : null}
             {mode === 'sign-in' ? (
               <span>
                 New here?{' '}
