@@ -11,6 +11,8 @@ import {
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
+import { LanguageToggle } from '../i18n/LanguageToggle'
+import { useLocale } from '../../context/LocaleContext'
 import { dashboardPath, participantProfilePath } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { useSignOutToHome } from '../../hooks/useSignOutToHome'
@@ -33,6 +35,7 @@ function ParticipantWorkspaceSelect({
   onAfterNavigate?: () => void
 }) {
   const { user, switchParticipantWorkspace } = useAuth()
+  const { t } = useLocale()
   const navigate = useNavigate()
 
   const dual =
@@ -43,11 +46,11 @@ function ParticipantWorkspaceSelect({
   return (
     <label className="flex min-h-11 max-w-[200px] items-center gap-2 md:max-w-none">
       <span className="hidden text-[11px] font-semibold uppercase tracking-wide text-slate-400 lg:inline">
-        Workspace
+        {t('common.workspaceLabel')}
       </span>
       <select
         className="w-full rounded-md border border-white/25 bg-[#0f172a] px-2 py-2 text-[14px] font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 lg:py-2"
-        aria-label="Switch between tenant and landlord workspace"
+        aria-label={t('common.workspaceSwitchAria')}
         value={user.role}
         onChange={(event) => {
           const mode = event.target.value
@@ -57,20 +60,21 @@ function ParticipantWorkspaceSelect({
           onAfterNavigate?.()
         }}
       >
-        <option value="tenant">Tenant</option>
-        <option value="landlord">Landlord</option>
+        <option value="tenant">{t('common.workspaceSwitchTenant')}</option>
+        <option value="landlord">{t('common.workspaceSwitchLandlord')}</option>
       </select>
     </label>
   )
 }
 
 function HelpFooterLink({ className }: { className?: string }) {
+  const { t } = useLocale()
   return (
     <a
       href="#footer-help"
       className={`${helpIconButtonClass}${className ? ` ${className}` : ''}`}
-      aria-label="Help"
-      title="Help"
+      aria-label={t('common.help')}
+      title={t('common.help')}
     >
       <CircleHelp className="size-6" aria-hidden strokeWidth={2} />
     </a>
@@ -80,6 +84,7 @@ function HelpFooterLink({ className }: { className?: string }) {
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user } = useAuth()
+  const { t } = useLocale()
   const signOutToHome = useSignOutToHome()
 
   function closeMobile() {
@@ -108,17 +113,17 @@ export function Header() {
             className="hidden min-w-0 items-center gap-1 md:flex lg:gap-2"
           >
             <NavLink to="/" className={`${navLinkClass} ${desktopAccent} px-2`}>
-              Home
+              {t('common.home')}
             </NavLink>
             <a href="/#roles" className={`${navLinkClass} ${desktopAccent} px-2`}>
-              Choose role
+              {t('common.chooseRole')}
             </a>
             {user?.role === 'officer' ? (
               <NavLink
                 to="/government"
                 className={`${navLinkClass} ${desktopAccent} px-2 text-slate-300/95 hover:text-white`}
               >
-                Government
+                {t('common.government')}
               </NavLink>
             ) : null}
             {user && user.role !== 'admin' ? (
@@ -128,7 +133,7 @@ export function Header() {
                   className={`${navLinkClass} ${desktopAccent} inline-flex items-center gap-1.5 px-2`}
                 >
                   <LayoutDashboard className="size-4 opacity-90" aria-hidden />
-                  Dashboard
+                  {t('common.dashboard')}
                 </NavLink>
                 {(user.role === 'tenant' || user.role === 'landlord') &&
                 user.participantEntitlements?.tenant &&
@@ -141,7 +146,7 @@ export function Header() {
                     className={`${navLinkClass} ${desktopAccent} inline-flex items-center gap-1.5 px-2`}
                   >
                     <User className="size-4 opacity-90" aria-hidden />
-                    Profile
+                    {t('common.profile')}
                   </NavLink>
                 ) : null}
                 {user.role === 'tenant' ? (
@@ -150,7 +155,7 @@ export function Header() {
                     className={`${navLinkClass} ${desktopAccent} hidden items-center gap-1.5 px-2 lg:inline-flex`}
                   >
                     <Bell className="size-4 opacity-90" aria-hidden />
-                    Alerts
+                    {t('common.alerts')}
                   </NavLink>
                 ) : null}
                 {user.role === 'landlord' ?
@@ -159,26 +164,26 @@ export function Header() {
                       to="/landlord/properties"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
                     >
-                      Properties
+                      {t('common.properties')}
                     </NavLink>
                     <NavLink
                       to="/landlord/contracts"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
                     >
-                      Contracts
+                      {t('common.contracts')}
                     </NavLink>
                     <NavLink
                       to="/landlord/reports"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
                     >
-                      Reports
+                      {t('common.reports')}
                     </NavLink>
                     <NavLink
                       to="/landlord/notifications"
                       className={`${navLinkClass} ${desktopAccent} inline-flex items-center gap-1.5 px-2`}
                     >
                       <Bell className="size-4 opacity-90" aria-hidden />
-                      Inbox
+                      {t('common.inbox')}
                     </NavLink>
                   </>
                 : null}
@@ -188,26 +193,26 @@ export function Header() {
                       to="/officer/participants"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 lg:inline-flex`}
                     >
-                      Participants
+                      {t('common.participants')}
                     </NavLink>
                     <NavLink
                       to="/officer/properties-review"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
                     >
-                      Props review
+                      {t('common.propsReview')}
                     </NavLink>
                     <NavLink
                       to="/officer/contracts-review"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center px-2 xl:inline-flex`}
                     >
-                      Contracts review
+                      {t('common.contractsReview')}
                     </NavLink>
                     <NavLink
                       to="/officer/map"
                       className={`${navLinkClass} ${desktopAccent} hidden items-center gap-1 px-2 xl:inline-flex`}
                     >
                       <Map className="size-4 opacity-90" aria-hidden />
-                      Map
+                      {t('common.map')}
                     </NavLink>
                   </>
                 : null}
@@ -217,20 +222,21 @@ export function Header() {
                   onClick={handleSignOut}
                 >
                   <LogOut className="size-4 opacity-90" aria-hidden />
-                  Sign out
+                  {t('common.signOut')}
                 </button>
               </>
             ) : null}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
+            <LanguageToggle variant="headerDark" />
             <HelpFooterLink />
             <button
               type="button"
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 md:hidden"
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileOpen ? t('common.closeMenu') : t('common.openMenu')}
               onClick={() => setMobileOpen((open) => !open)}
             >
               {mobileOpen ? <X className="size-6" aria-hidden /> : <Menu className="size-6" aria-hidden />}
@@ -250,14 +256,14 @@ export function Header() {
             className={`${navLinkClass} ${accent}`}
             onClick={closeMobile}
           >
-            Home
+            {t('common.home')}
           </NavLink>
           <a
             href="/#roles"
             className={`${navLinkClass} ${accent}`}
             onClick={closeMobile}
           >
-            Choose role
+            {t('common.chooseRole')}
           </a>
           {user?.role === 'officer' ? (
             <NavLink
@@ -265,7 +271,7 @@ export function Header() {
               className={`${navLinkClass} ${accent}`}
               onClick={closeMobile}
             >
-              Government
+              {t('common.government')}
             </NavLink>
           ) : null}
           {user && user.role !== 'admin' ? (
@@ -275,7 +281,7 @@ export function Header() {
                 className={`${navLinkClass} ${accent}`}
                 onClick={closeMobile}
               >
-                Dashboard
+                {t('common.dashboard')}
               </NavLink>
               {(user.role === 'tenant' || user.role === 'landlord') &&
               user.participantEntitlements?.tenant &&
@@ -283,7 +289,7 @@ export function Header() {
                 <div className="px-1 py-2">
                   <ParticipantWorkspaceSelect onAfterNavigate={closeMobile} />
                   <p className="mt-2 text-xs text-slate-400">
-                    Switch workspace before opening the other menus.
+                    {t('common.mobileWorkspaceHint')}
                   </p>
                 </div>
               : null}
@@ -294,7 +300,7 @@ export function Header() {
                   onClick={closeMobile}
                 >
                   <User className="size-4 shrink-0" aria-hidden />
-                  Profile
+                  {t('common.profile')}
                 </NavLink>
               ) : null}
               {user.role === 'tenant' ? (
@@ -304,7 +310,7 @@ export function Header() {
                   onClick={closeMobile}
                 >
                   <Bell className="size-4 shrink-0" aria-hidden />
-                  Alerts
+                  {t('common.alerts')}
                 </NavLink>
               ) : null}
               {user.role === 'landlord' ?
@@ -314,21 +320,21 @@ export function Header() {
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Properties
+                    {t('common.properties')}
                   </NavLink>
                   <NavLink
                     to="/landlord/contracts"
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Contracts
+                    {t('common.contracts')}
                   </NavLink>
                   <NavLink
                     to="/landlord/reports"
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Reports
+                    {t('common.reports')}
                   </NavLink>
                   <NavLink
                     to="/landlord/notifications"
@@ -336,7 +342,7 @@ export function Header() {
                     onClick={closeMobile}
                   >
                     <Bell className="size-4 shrink-0" aria-hidden />
-                    Inbox
+                    {t('common.inbox')}
                   </NavLink>
                 </>
               : null}
@@ -347,21 +353,21 @@ export function Header() {
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Participants
+                    {t('common.participants')}
                   </NavLink>
                   <NavLink
                     to="/officer/properties-review"
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Props review
+                    {t('common.propsReview')}
                   </NavLink>
                   <NavLink
                     to="/officer/contracts-review"
                     className={`${navLinkClass} ${accent}`}
                     onClick={closeMobile}
                   >
-                    Contracts review
+                    {t('common.contractsReview')}
                   </NavLink>
                   <NavLink
                     to="/officer/map"
@@ -369,7 +375,7 @@ export function Header() {
                     onClick={closeMobile}
                   >
                     <Map className="size-4 shrink-0" aria-hidden />
-                    Map
+                    {t('common.map')}
                   </NavLink>
                 </>
               : null}
@@ -379,7 +385,7 @@ export function Header() {
                 onClick={handleSignOut}
               >
                 <LogOut className="size-4" aria-hidden />
-                Sign out
+                {t('common.signOut')}
               </button>
             </>
           ) : null}

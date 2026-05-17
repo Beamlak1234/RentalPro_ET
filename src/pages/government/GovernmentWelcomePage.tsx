@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 
 import { GovPageSurface } from '../../components/layout/GovPageSurface'
 import { dashboardPath } from '../../constants/roles'
+import { useLocale } from '../../context/LocaleContext'
 import { useAuth } from '../../hooks/useAuth'
 
 export function GovernmentWelcomePage() {
   const { user } = useAuth()
+  const { t } = useLocale()
   const participantBrowsingGovernment = Boolean(user?.participantEntitlements)
 
   return (
@@ -22,23 +24,20 @@ export function GovernmentWelcomePage() {
             </span>
             <div className="mt-6 min-w-0 text-center sm:mt-0 sm:text-left">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#1e293b]/90">
-                Official access channel
+                {t('gov.officialChannel')}
               </p>
               <h1 className="mt-2 text-balance text-3xl font-bold tracking-tight text-[#1e293b] sm:text-4xl">
-                Government officer portal
+                {t('gov.portalTitle')}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-slate-700 sm:mx-0 sm:text-lg">
-                This entry is reserved for authorised public-sector users who
-                supervise rental transparency, verify compliance, and coordinate
-                regulatory workflows. Tenant and landlord self-service remains on
-                the{' '}
+                {t('gov.portalLeadBefore')}
                 <Link
                   className="font-semibold text-[#1e293b] underline decoration-slate-300 underline-offset-2 hover:no-underline"
                   to="/"
                 >
-                  public welcome page
+                  {t('gov.portalLeadLink')}
                 </Link>
-                .
+                {t('gov.portalLeadAfter')}
               </p>
             </div>
           </div>
@@ -50,72 +49,70 @@ export function GovernmentWelcomePage() {
               </span>
               <div className="min-w-0">
                 <h2 className="text-xl font-semibold text-slate-900">
-                  Sign in or register as an officer
+                  {t('gov.signInHeading')}
                 </h2>
                 <p className="mt-2 text-pretty text-sm leading-relaxed text-slate-600 sm:text-base">
-                  Use your issued credentials where applicable. In this demo,
-                  officers self-register like other roles; production systems
-                  often restrict onboarding to invitation or federation—swap the
-                  auth backend when you integrate.
+                  {t('gov.signInBody')}
                 </p>
               </div>
             </div>
 
             {user?.role === 'officer' ?
               <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50/85 px-4 py-4 text-sm leading-relaxed text-sky-950 ring-1 ring-sky-100 sm:px-5">
-                <strong className="font-semibold">Signed in</strong> as{' '}
-                officer — open the prototype{' '}
+                <strong className="font-semibold">{t('gov.signedInBadge')}</strong>
+                {t('gov.signedInOfficerMid')}
                 <Link
                   className="font-semibold underline decoration-sky-400 underline-offset-2 hover:no-underline"
                   to="/officer/participants"
                 >
-                  tenant & landlord participant directory
-                </Link>{' '}
-                for read-only browse of demo registrations in this browser.
+                  {t('gov.directoryLink')}
+                </Link>
+                {t('gov.signedInOfficerTail')}
               </div>
             : null}
 
             {participantBrowsingGovernment ?
               <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:px-5">
-                <strong className="font-semibold">Restricted while signed in.</strong>{' '}
-                As a participant you can read this briefing, but officer sign-on is
-                limited to authorised government officer accounts.&nbsp;
-                <Link
-                  className="font-semibold underline decoration-amber-600 underline-offset-2 hover:no-underline"
-                  to={user ? dashboardPath(user.role) : '/'}
-                >
-                  Return to your workspace
-                </Link>
-                {' '}
-                or sign out completely before creating an officer demo account.
+                <p>
+                  <strong className="font-semibold">{t('gov.restrictedBold')}</strong>{' '}
+                  {t('gov.restrictedBody')}{' '}
+                  <Link
+                    className="font-semibold underline decoration-amber-600 underline-offset-2 hover:no-underline"
+                    to={user ? dashboardPath(user.role) : '/'}
+                  >
+                    {t('gov.returnWorkspace')}
+                  </Link>
+                  {' '}
+                  {t('gov.signOutHint')}
+                </p>
               </div>
             : <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/auth/officer/sign-in"
                   className="inline-flex min-h-12 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1e293b] px-5 text-base font-semibold text-white shadow-sm hover:bg-[#334155] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e293b]"
                 >
-                  Officer sign in
+                  {t('gov.officerSignIn')}
                   <ChevronRight className="size-5 opacity-90" aria-hidden />
                 </Link>
                 <Link
                   to="/auth/officer/sign-up"
                   className="inline-flex min-h-12 flex-1 items-center justify-center rounded-lg border-2 border-[#1e293b] bg-white px-5 text-base font-semibold text-[#1e293b] hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e293b]"
                 >
-                  Create officer account
+                  {t('gov.createOfficer')}
                 </Link>
               </div>
             }
           </div>
 
           <p className="mt-8 text-center text-xs text-slate-600 sm:text-left">
-            Administrative platform staff use{' '}
+            {t('gov.staffFootnote.before')}
             <Link
               className="font-semibold text-[#1e293b] underline-offset-2 hover:underline"
               to="/admin/sign-in"
             >
-              Staff / admin login
-            </Link>{' '}
-            — separate from officer access.
+              {t('gov.staffAdminLink')}
+            </Link>
+            {t('gov.staffFootnote.after')}
           </p>
         </div>
       </section>

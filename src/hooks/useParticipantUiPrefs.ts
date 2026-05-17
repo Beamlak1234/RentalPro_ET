@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useReducer } from 'react'
 
-import type { ParticipantProfile, UiLanguagePreference } from '../auth/participantProfile'
+import type { ParticipantProfile } from '../auth/participantProfile'
 import { findAccountById, loadAccounts } from '../auth/storage'
 import { useAuth } from './useAuth'
 
@@ -27,7 +27,3 @@ export function useParticipantProfileSnapshot(): ParticipantProfile | null {
   }, [user?.id, tick])
 }
 
-export function useTenantLang(): UiLanguagePreference {
-  const p = useParticipantProfileSnapshot()
-  return p?.preferredLanguage === 'am' ? 'am' : 'en'
-}

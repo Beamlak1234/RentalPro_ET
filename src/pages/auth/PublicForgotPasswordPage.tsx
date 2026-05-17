@@ -6,12 +6,15 @@ import { GovPageSurface } from '../../components/layout/GovPageSurface'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { updatePersistedPasswordForRoleDemo } from '../../auth/storage'
+import { useLocale } from '../../context/LocaleContext'
 import {
   ROLE_LABELS,
   dashboardPath,
   isPublicAuthRole,
   type PublicAuthRole,
 } from '../../constants/roles'
+import type { MessageId } from '../../i18n/t'
+import { tInterpolate } from '../../i18n/t'
 import { useAuth } from '../../hooks/useAuth'
 import { enqueueAccessFlashBanner } from '../../navigation/pendingAccessFlash'
 
@@ -19,6 +22,7 @@ export function PublicForgotPasswordPage() {
   const { role: roleParam } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t: tr, lang } = useLocale()
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -30,7 +34,14 @@ export function PublicForgotPasswordPage() {
   }
 
   const role: PublicAuthRole = roleParam
-  const label = ROLE_LABELS[role]
+
+  const roleTitleKey = {
+    tenant: 'common.roleTenant',
+    landlord: 'common.roleLandlord',
+    officer: 'common.roleOfficer',
+  } as const satisfies Record<PublicAuthRole, MessageId>
+
+  const roleDisplay = tr(roleTitleKey[role])
 
   if (user?.role === 'admin') {
     enqueueAccessFlashBanner(
@@ -71,29 +82,27 @@ export function PublicForgotPasswordPage() {
   const formInner = (
     <section className="mx-auto w-full max-w-md flex-1 px-4 py-14 sm:py-20">
       <AuthCard
-        title={`Reset password — ${label}`}
-        subtitle="Demo only: resets the plaintext credentials stored locally in your browser profiles—no SMS or secure email verification."
+        title={tInterpolate(lang, 'auth.forgot.resetTitle', { role: roleDisplay })}
+        subtitle={tr('auth.forgot.publicSubtitle')}
         footer={
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
             <Link
               to="/"
               className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
             >
-              Home
+              {tr('auth.home')}
             </Link>
             <Link
               className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
               to={`/auth/${role}/sign-in`}
             >
-              Back to sign in
+              {tr('auth.forgot.backSignIn')}
             </Link>
           </div>
         }
       >
         <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
-          <strong className="font-semibold">Prototype only.</strong> Anyone with
-          this browser profile could change stored passwords exactly like signing
-          in—do not confuse this with regulated identity recovery pipelines.
+          {tr('auth.forgot.prototypeWarning')}
         </div>
 
         <form className="flex flex-col gap-5" autoComplete="on" onSubmit={handleSubmit} noValidate>
@@ -109,7 +118,7 @@ export function PublicForgotPasswordPage() {
             key={`rp-forgot-email-${role}`}
             name="email"
             type="email"
-            label="Registered email"
+            label={tr('auth.forgot.registeredEmail')}
             autoComplete="email"
             required
             labelClassName="text-base"
@@ -120,7 +129,8 @@ export function PublicForgotPasswordPage() {
             key={`rp-forgot-pw-${role}`}
             name="new-password"
             type="password"
-            label="New password"
+            passwordVisibilityToggle
+            label={tr('auth.forgot.newPw')}
             autoComplete="new-password"
             minLength={8}
             required
@@ -132,7 +142,8 @@ export function PublicForgotPasswordPage() {
             key={`rp-forgot-pwc-${role}`}
             name="new-password-confirm"
             type="password"
-            label="Confirm new password"
+            passwordVisibilityToggle
+            label={tr('auth.forgot.confirmPw')}
             autoComplete="new-password"
             minLength={8}
             required
@@ -141,7 +152,7 @@ export function PublicForgotPasswordPage() {
             onChange={(e) => setConfirm(e.target.value)}
           />
           <Button type="submit" variant="primary" className="w-full" disabled={busy}>
-            {busy ? 'Saving…' : 'Update demo password'}
+            {busy ? tr('auth.forgot.saving') : tr('auth.forgot.save')}
           </Button>
         </form>
       </AuthCard>

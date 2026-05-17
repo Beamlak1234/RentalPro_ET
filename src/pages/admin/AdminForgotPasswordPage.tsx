@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { updatePersistedPasswordForRoleDemo } from '../../auth/storage'
 import { AuthCard } from '../../components/auth/AuthCard'
 import { Button } from '../../components/ui/Button'
+import { useLocale } from '../../context/LocaleContext'
 import { dashboardPath } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { Input } from '../../components/ui/Input'
@@ -12,6 +13,7 @@ import { enqueueAccessFlashBanner } from '../../navigation/pendingAccessFlash'
 export function AdminForgotPasswordPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useLocale()
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -56,29 +58,27 @@ export function AdminForgotPasswordPage() {
 
   return (
     <AuthCard
-      title="Reset admin password (demo)"
-      subtitle="Writes directly to seeded browser-local admin accounts — no OTP or audited recovery."
+      title={t('auth.admin.forgot.title')}
+      subtitle={t('auth.admin.forgot.subtitle')}
       footer={
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
           <Link
             to="/"
             className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
           >
-            Home
+            {t('auth.home')}
           </Link>
           <Link
             className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
             to="/admin/sign-in"
           >
-            Back to admin sign in
+            {t('auth.admin.forgot.back')}
           </Link>
         </div>
       }
     >
       <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
-        <strong className="font-semibold">Production note.</strong> Replace this
-        path with audited identity federation before granting real operational
-        access.
+        {t('auth.admin.forgot.productionNote')}
       </div>
 
       <form className="flex flex-col gap-5" autoComplete="on" onSubmit={handleSubmit} noValidate>
@@ -93,7 +93,7 @@ export function AdminForgotPasswordPage() {
         <Input
           name="admin-reset-email"
           type="email"
-          label="Work email"
+          label={t('auth.admin.workEmail')}
           autoComplete="username email"
           required
           labelClassName="text-base"
@@ -103,7 +103,8 @@ export function AdminForgotPasswordPage() {
         <Input
           name="admin-new-password"
           type="password"
-          label="New password"
+          passwordVisibilityToggle
+          label={t('auth.forgot.newPw')}
           autoComplete="new-password"
           minLength={8}
           required
@@ -114,7 +115,8 @@ export function AdminForgotPasswordPage() {
         <Input
           name="admin-new-password-confirm"
           type="password"
-          label="Confirm new password"
+          passwordVisibilityToggle
+          label={t('auth.forgot.confirmPw')}
           autoComplete="new-password"
           minLength={8}
           required
@@ -123,7 +125,7 @@ export function AdminForgotPasswordPage() {
           onChange={(e) => setConfirm(e.target.value)}
         />
         <Button type="submit" variant="primary" className="w-full" disabled={busy}>
-          {busy ? 'Updating…' : 'Update seeded admin credential'}
+          {busy ? t('auth.admin.forgot.updating') : t('auth.admin.forgot.updateCred')}
         </Button>
       </form>
     </AuthCard>

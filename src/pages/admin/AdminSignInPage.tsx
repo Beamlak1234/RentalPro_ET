@@ -8,6 +8,7 @@ import {
 } from '../../auth/storage'
 import { AuthCard } from '../../components/auth/AuthCard'
 import { Button } from '../../components/ui/Button'
+import { useLocale } from '../../context/LocaleContext'
 import { dashboardPath } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { Input } from '../../components/ui/Input'
@@ -16,6 +17,7 @@ export function AdminSignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, login, authShellEpoch } = useAuth()
+  const { t } = useLocale()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -64,23 +66,23 @@ export function AdminSignInPage() {
 
   return (
     <AuthCard
-      title="Admin sign-in"
-      subtitle="Privileged access. No public registration — accounts are issued by your organization."
+      title={t('auth.admin.title')}
+      subtitle={t('auth.admin.subtitle')}
       footer={
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
           <Link
             to="/"
             className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
           >
-            Home
+            {t('auth.home')}
           </Link>
           <span>
-            Participant / officer access starts on{' '}
+            {t('auth.admin.footerLead')}{' '}
             <Link
               className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
               to="/"
             >
-              the welcome page
+              {t('auth.admin.footerWelcomeLink')}
             </Link>
             .
           </span>
@@ -88,7 +90,7 @@ export function AdminSignInPage() {
       }
     >
       <p className="rounded-lg bg-amber-50 px-4 py-3 text-left text-sm text-amber-950 ring-1 ring-amber-100">
-        <span className="font-semibold">Demo admin account:</span>{' '}
+        <span className="font-semibold">{t('auth.admin.demoLabel')}</span>{' '}
         <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">
           admin@rentalpro.et
         </code>{' '}
@@ -96,7 +98,7 @@ export function AdminSignInPage() {
         <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">
           ChangeMeAdmin!
         </code>
-        {' — seeded on first load in browser storage.'}
+        {' '}{t('auth.admin.demoSeeded')}
       </p>
       <form
         className="mt-6 flex flex-col gap-5"
@@ -116,7 +118,7 @@ export function AdminSignInPage() {
           key={`adm-email-${authShellEpoch}`}
           name="email"
           type="email"
-          label="Work email"
+          label={t('auth.admin.workEmail')}
           autoComplete="username email"
           placeholder="you@agency.gov.et"
           required
@@ -128,7 +130,8 @@ export function AdminSignInPage() {
           key={`adm-pw-${authShellEpoch}`}
           name="password"
           type="password"
-          label="Password"
+          passwordVisibilityToggle
+          label={t('auth.admin.password')}
           autoComplete="current-password"
           placeholder="Enter your password"
           required
@@ -142,14 +145,14 @@ export function AdminSignInPage() {
           className="w-full"
           disabled={busy}
         >
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('auth.admin.signingIn') : t('auth.signIn.cta')}
         </Button>
         <p className="text-center">
           <Link
             className="inline-flex min-h-11 items-center justify-center px-2 text-sm font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
             to="/admin/forgot-password"
           >
-            Forgot password?
+            {t('auth.forgot.link')}
           </Link>
         </p>
       </form>

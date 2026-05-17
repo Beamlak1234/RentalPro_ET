@@ -18,12 +18,15 @@ import { AuthCard } from '../../components/auth/AuthCard'
 import { GovPageSurface } from '../../components/layout/GovPageSurface'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { useLocale } from '../../context/LocaleContext'
+import { localeCapsTracking } from '../../i18n/localeTypography'
 import {
-  ROLE_LABELS,
   dashboardPath,
   isPublicAuthRole,
   type PublicAuthRole,
 } from '../../constants/roles'
+import type { MessageId } from '../../i18n/t'
+import { tInterpolate } from '../../i18n/t'
 import { useAuth } from '../../hooks/useAuth'
 import { enqueueAccessFlashBanner } from '../../navigation/pendingAccessFlash'
 
@@ -69,6 +72,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, login, register, authShellEpoch } = useAuth()
+  const { t: tr, lang } = useLocale()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -111,6 +115,14 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
 
   const role: PublicAuthRole = roleParam
 
+  const roleTitleKey = {
+    tenant: 'common.roleTenant',
+    landlord: 'common.roleLandlord',
+    officer: 'common.roleOfficer',
+  } as const satisfies Record<PublicAuthRole, MessageId>
+
+  const roleDisplay = tr(roleTitleKey[role])
+
   if (user) {
     if (user.role === 'admin') {
       enqueueAccessFlashBanner(
@@ -142,8 +154,19 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
     }
   }
 
-  const label = ROLE_LABELS[role]
   const participantRole = role === 'tenant' || role === 'landlord'
+
+  const cardTitle =
+    mode === 'sign-in' ?
+      tInterpolate(lang, 'auth.cardTitle.signIn', { role: roleDisplay })
+    : tInterpolate(lang, 'auth.cardTitle.signUp', { role: roleDisplay })
+
+  const cardSubtitle =
+    mode === 'sign-in' ?
+      tr('auth.subtitle.signIn')
+    : role === 'officer' ?
+      tr('auth.subtitle.officerSignup')
+    : tr('auth.subtitle.participantSignup')
 
   const prevAuthLocationState =
     location.state as PublicAuthLocationState | undefined
@@ -199,50 +222,44 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
   const formSection = (
     <section className="mx-auto w-full max-w-md flex-1 px-4 py-14 sm:py-20">
       <AuthCard
-        title={`${mode === 'sign-in' ? 'Sign in' : 'Create account'} — ${label}`}
-        subtitle={
-          mode === 'sign-in'
-            ? 'Welcome back. Use the email you registered for this role.'
-            : role === 'officer'
-              ? `Register as ${label.toLowerCase()}. Officer access stays isolated from tenant / landlord—even if someone rents and lets out property, they still need a separate officer credential in this demo.`
-              : `Register as ${label.toLowerCase()}. Already have the other participant workspace? Use the same email + password and complete the form again—this demo merges tenant + landlord into one account.`
-        }
+        title={cardTitle}
+        subtitle={cardSubtitle}
         footer={
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-center text-sm text-slate-600">
             <Link
               to="/"
               className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
             >
-              Home
+              {tr('auth.home')}
             </Link>
             {role === 'officer' ? (
               <Link
                 to="/government"
                 className="inline-flex min-h-11 items-center justify-center rounded-md px-2 font-semibold text-[#1e293b] underline decoration-slate-400 underline-offset-2 hover:decoration-[#1e293b]"
               >
-                Officer portal briefing
+                {tr('auth.footer.officerPortal')}
               </Link>
             ) : null}
             {mode === 'sign-in' ? (
               <span>
-                New here?{' '}
+                {tr('auth.switch.newPrefix')}{' '}
                 <Link
                   className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
                   to={`/auth/${role}/sign-up`}
                   state={authNavState}
                 >
-                  Create an account
+                  {tr('auth.switch.createAccount')}
                 </Link>
               </span>
             ) : (
               <span>
-                Already registered?{' '}
+                {tr('auth.switch.registeredPrefix')}{' '}
                 <Link
                   className="inline-flex min-h-11 items-center font-semibold text-[#1e293b] underline"
                   to={`/auth/${role}/sign-in`}
                   state={authNavState}
                 >
-                  Sign in
+                  {tr('auth.switch.signIn')}
                 </Link>
               </span>
             )}
@@ -251,22 +268,13 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
       >
         {fromGovernmentEnrollment && participantRole ?
           <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
-            <strong className="font-semibold">Government desk context.</strong>{' '}
-            Tenant and landlord accounts use participant credentials stored and
-            managed separately from your officer workstation. Signing in here is
-            for personal rental enrolment—not for acting on behalf of regulated
-            review inside the officer console.
+            {tr('auth.banner.govDesk')}
           </div>
         : null}
 
         {mode === 'sign-up' && participantRole ? (
           <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-xs leading-relaxed text-amber-950 ring-1 ring-amber-100 sm:text-sm">
-            <strong className="font-semibold">Prototype only.</strong> Data stays in{' '}
-            this browser profile (localStorage) and is{' '}
-            <strong className="font-semibold">not</strong> legal identity
-            verification. Do{' '}
-            <strong className="font-semibold">not</strong> paste real scanned ID or
-            full national ID strings if you wouldn’t paste them elsewhere.
+            {tr('auth.banner.prototype')}
           </div>
         ) : null}
 
@@ -289,9 +297,9 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             <>
               <Input
                 name="legalFullName"
-                label="Legal / full name"
+                label={tr('auth.legal.fullName')}
                 autoComplete="name"
-                placeholder="Match how you identify on formal documents — demo text"
+                placeholder={tr('auth.placeholder.legal')}
                 labelClassName="text-base"
                 value={participantDraft.legalFullName}
                 onChange={(e) => patchDraft({ legalFullName: e.target.value })}
@@ -300,7 +308,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
               <Input
                 name="participantPhone"
                 type="tel"
-                label="Phone"
+                label={tr('auth.phone')}
                 autoComplete="tel"
                 labelClassName="text-base"
                 value={participantDraft.phone}
@@ -309,7 +317,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
               />
               <Input
                 name="cityRegion"
-                label="City / region"
+                label={tr('auth.cityRegion')}
                 labelClassName="text-base"
                 value={participantDraft.cityRegion}
                 onChange={(e) => patchDraft({ cityRegion: e.target.value })}
@@ -317,8 +325,8 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
               />
               <Input
                 name="nationalIdRef"
-                label="National ID reference (optional)"
-                placeholder="Masked or abbreviated reference — demo only"
+                label={tr('auth.nationalIdOptional')}
+                placeholder={tr('auth.placeholder.nationalId')}
                 labelClassName="text-base"
                 value={participantDraft.nationalIdRef}
                 onChange={(e) =>
@@ -327,7 +335,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
               />
               <Input
                 name="digitalIdFaydaRef"
-                label="Digital ID / Fayda reference (optional)"
+                label={tr('auth.faydaOptional')}
                 placeholder="External reference identifier — demo"
                 labelClassName="text-base"
                 value={participantDraft.digitalIdFaydaRef}
@@ -336,13 +344,15 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
                 }
               />
               <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Emergency contact (optional)
+                <p
+                  className={`text-xs font-semibold text-slate-500 ${localeCapsTracking(lang)}`}
+                >
+                  {tr('auth.emergencySection')}
                 </p>
                 <div className="mt-3 space-y-4">
                   <Input
                     name="emergencyName"
-                    label="Name"
+                    label={tr('auth.nameGeneric')}
                     autoComplete="name"
                     labelClassName="text-base"
                     value={participantDraft.emergencyContactName}
@@ -355,7 +365,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
                   <Input
                     name="emergencyPhone"
                     type="tel"
-                    label="Phone"
+                    label={tr('auth.phone')}
                     autoComplete="tel"
                     labelClassName="text-base"
                     value={participantDraft.emergencyContactPhone}
@@ -376,11 +386,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
                   onChange={(e) => setPrototypeConsent(e.target.checked)}
                   aria-describedby="prototype-consent-hint"
                 />
-                <span id="prototype-consent-hint">
-                  I understand this is a prototype: my details are saved only in{' '}
-                  demo browser storage, are not authenticated by RentalPro ET or{' '}
-                  government systems, and I will not rely on them as legal proofs.
-                </span>
+                <span id="prototype-consent-hint">{tr('auth.consent.checkbox')}</span>
               </label>
             </>
           ) : null}
@@ -388,7 +394,7 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
           {mode === 'sign-up' && role === 'officer' ? (
             <Input
               name="displayName"
-              label="Full name"
+              label={tr('auth.officer.displayName')}
               autoComplete="name"
               placeholder="Ada Mulu"
               labelClassName="text-base"
@@ -406,9 +412,9 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             }
             name="email"
             type="email"
-            label="Email"
+            label={tr('auth.email')}
             autoComplete={mode === 'sign-in' ? 'username email' : 'email'}
-            placeholder={`you@example.com (${label})`}
+            placeholder={`you@example.com (${roleDisplay})`}
             labelClassName="text-base"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -423,7 +429,8 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             }
             name="password"
             type="password"
-            label="Password"
+            passwordVisibilityToggle
+            label={tr('auth.password')}
             autoComplete={
               mode === 'sign-in' ? 'current-password' : 'new-password'
             }
@@ -438,7 +445,8 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             <Input
               name="passwordConfirm"
               type="password"
-              label="Confirm password"
+              passwordVisibilityToggle
+              label={tr('auth.confirmPassword')}
               autoComplete="new-password"
               labelClassName="text-base"
               value={passwordConfirm}
@@ -454,10 +462,10 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
             disabled={busy}
           >
             {busy ?
-              'Please wait…'
+              tr('auth.wait')
             : mode === 'sign-in' ?
-              'Sign in'
-            : 'Create account'}
+              tr('auth.signIn.cta')
+            : tr('auth.signUp.cta')}
           </Button>
           {mode === 'sign-in' ?
             <p className="text-center">
@@ -466,15 +474,14 @@ export function PublicRoleAuthPage({ mode }: { mode: Mode }) {
                 to={`/auth/${role}/forgot-password`}
                 state={participantRole ? authNavState : undefined}
               >
-                Forgot password?
+                {tr('auth.forgot.link')}
               </Link>
             </p>
           : null}
         </form>
 
         <p className="mt-5 text-center text-xs text-slate-500">
-          Demo auth stores accounts in your browser — use fake credentials to try
-          flows.
+          {tr('auth.demo.note')}
         </p>
       </AuthCard>
     </section>

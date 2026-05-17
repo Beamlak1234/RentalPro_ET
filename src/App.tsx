@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AdminLayout } from './components/layout/AdminLayout'
 import { AppShell } from './components/layout/AppShell'
 import { AuthProvider } from './context/AuthProvider'
+import { LocaleProvider } from './context/LocaleContext'
 import { AdminConfigPage } from './pages/admin/AdminConfigPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { AdminForgotPasswordPage } from './pages/admin/AdminForgotPasswordPage'
@@ -71,7 +72,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <LocaleProvider>
+          <Routes>
           <Route
             path="/"
             element={
@@ -414,7 +416,8 @@ export default function App() {
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </LocaleProvider>
       </AuthProvider>
     </BrowserRouter>
   )

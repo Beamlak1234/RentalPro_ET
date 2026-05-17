@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom'
 
+import { useLocale } from '../../context/LocaleContext'
+import { tInterpolate } from '../../i18n/t'
+
 export function Footer() {
+  const { t, lang } = useLocale()
+  const year = new Date().getFullYear()
+
   return (
     <footer
       id="footer-help"
@@ -8,24 +14,20 @@ export function Footer() {
     >
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-6">
         <div>
-          <p className="text-base font-semibold text-white">RentalPro ET</p>
-          <p className="mt-2 text-sm leading-relaxed">
-            A digital platform for transparent rental management in Ethiopia —
-            public access for tenants and landlords; separate entry for authorised
-            officers and staff.
-          </p>
+          <p className="text-base font-semibold text-white">{t('footer.brand')}</p>
+          <p className="mt-2 text-sm leading-relaxed">{t('footer.intro')}</p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">Product</p>
+          <p className="text-sm font-semibold text-white">{t('footer.product')}</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <Link className="hover:text-white" to="/">
-                Welcome
+                {t('footer.welcome')}
               </Link>
             </li>
             <li>
               <a className="hover:text-white" href="/#roles">
-                Tenant & landlord signup
+                {t('footer.signupTeaser')}
               </a>
             </li>
             <li>
@@ -33,22 +35,22 @@ export function Footer() {
                 className="text-slate-400 underline-offset-2 hover:text-white hover:underline"
                 to="/auth/officer/sign-in"
               >
-                Officer sign-in
+                {t('footer.officerSignInLink')}
               </Link>
             </li>
           </ul>
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">Legal</p>
+          <p className="text-sm font-semibold text-white">{t('footer.legal')}</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a className="hover:text-white" href="#footer-help">
-                Privacy (coming soon)
+                {t('footer.privacy')}
               </a>
             </li>
             <li>
               <a className="hover:text-white" href="#footer-help">
-                Terms (coming soon)
+                {t('footer.terms')}
               </a>
             </li>
           </ul>
@@ -56,17 +58,13 @@ export function Footer() {
         <div>
           <p className="text-sm font-semibold text-white">
             <Link className="hover:text-white hover:underline" to="/contact">
-              Contact
+              {t('footer.contact')}
             </Link>
           </p>
           <p className="mt-3 text-sm leading-relaxed">
-            <span className="font-medium text-slate-200">Platform operator</span>{' '}
-            <span className="text-slate-400">(placeholder):</span>{' '}
-            RentalPro ET program office, on behalf of{' '}
-            <span className="text-slate-200">
-              [Ministry / Regional housing authority — TBD]
-            </span>
-            .
+            <span className="font-medium text-slate-200">{t('footer.operatorLead')}</span>{' '}
+            <span className="text-slate-400">{t('footer.operatorTag')}</span>{' '}
+            <span className="text-slate-200">{t('footer.operatorBody')}</span>
           </p>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed">
             <li>
@@ -76,16 +74,15 @@ export function Footer() {
               >
                 support@rentalpro.et
               </a>{' '}
-              <span className="text-slate-500">(placeholder)</span>
+              <span className="text-slate-500">{t('footer.supportPlaceholder')}</span>
             </li>
             <li>
-              <span className="text-slate-200">+251 … — TBD</span>
+              <span className="text-slate-200">{t('footer.phoneTbd')}</span>
             </li>
-            <li className="text-slate-400">Hours: TBD</li>
+            <li className="text-slate-400">{t('footer.hoursTbd')}</li>
           </ul>
           <p className="mt-4 text-xs leading-relaxed text-slate-400">
-            Government officers should use institution-issued channels, not this
-            public mailbox. Officer workspace sign-in:{' '}
+            {t('footer.govNote')}{' '}
             <Link
               className="font-medium text-slate-300 underline-offset-2 hover:text-white hover:underline"
               to="/auth/officer/sign-in"
@@ -99,7 +96,7 @@ export function Footer() {
               className="text-xs font-semibold uppercase tracking-wide text-slate-400 underline-offset-2 hover:text-white hover:underline"
               to="/contact"
             >
-              More contact details
+              {t('footer.moreContact')}
             </Link>
           </p>
         </div>
@@ -110,16 +107,16 @@ export function Footer() {
             className="text-xs text-slate-500 underline-offset-2 hover:text-slate-400 hover:underline"
             to="/auth/officer/sign-in"
           >
-            Officer sign-in
+            {t('footer.officerSignInLink')}
           </Link>
           <Link
             className="text-xs text-slate-500 underline-offset-2 hover:text-slate-400 hover:underline"
             to="/admin/sign-in"
           >
-            Staff / admin login
+            {t('footer.staffAdmin')}
           </Link>
           <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} RentalPro ET. All rights reserved.
+            {tInterpolate(lang, 'footer.copyright', { year })}
           </p>
         </div>
       </div>
